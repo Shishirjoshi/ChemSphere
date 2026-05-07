@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Student profile and progress data",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "learningStreak": { "type": "number" },
+        "lastActive": { "type": "string", "format": "date-time" },
+        "totalPoints": { "type": "number" },
+        "completedChapters": { "type": "array", "items": { "type": "string" } },
+        "savedTopics": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["uid", "email"]
+    },
+    "QuizAttempt": {
+      "title": "Quiz Attempt",
+      "description": "Result of a completed quiz",
+      "type": "object",
+      "properties": {
+        "quizId": { "type": "string" },
+        "userId": { "type": "string" },
+        "score": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "duration": { "type": "number" }
+      },
+      "required": ["quizId", "userId", "score", "totalQuestions"]
+    },
+    "Note": {
+      "title": "Student Note",
+      "description": "User created notes or saved snippets",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "topicId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/users/{userId}/quiz_attempts/{attemptId}": {
+      "schema": "QuizAttempt",
+      "description": "History of quizzes per user"
+    },
+    "/users/{userId}/notes/{noteId}": {
+      "schema": "Note",
+      "description": "Saved notes per user"
+    }
+  }
+}

@@ -1,0 +1,60 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // -------------------------------------------------------------------------
+    // HELPERS
+    // -------------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // USERS COLLECTION
+    // -------------------------------------------------------------------------
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.keys().hasAll(['uid', 'email']) &&
+               data.uid is string &&
+               data.email is string &&
+               data.email.size() <= 256;
+      }
+
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && 
+                      isValidUser(request.resource.data) &&
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['displayName', 'learningStreak', 'totalPoints', 'completedChapters', 'savedTopics', 'lastActive']);
+      
+      // Quiz Attempts subcollection
+      match /quiz_attempts/{attemptId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Notes subcollection
+      match /notes/{noteId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+    
+    // -------------------------------------------------------------------------
+    // TEST COLLECTION (for testConnection helper)
+    // -------------------------------------------------------------------------
+    match /test/connection {
+      allow get: if true;
+    }
+  }
+}
