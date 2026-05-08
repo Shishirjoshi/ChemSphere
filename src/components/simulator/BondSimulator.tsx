@@ -478,7 +478,7 @@ const MoleculeViewer3D: React.FC<ViewerProps> = ({
 // ─── Main Component ───────────────────────────────────────────────────────────
  
 type InfoTab = 'desc' | 'lewis' | 'facts' | 'periodic';
-type SimulationTopic = 'bonding' | 'periodic' | 'ionic-covalent';
+type SimulationTopic = 'bonding' | 'periodic' | 'ionic-covalent' | 'lewis-generator';
  
 export const BondSimulator: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<SimulationTopic | null>(null);
@@ -492,27 +492,32 @@ export const BondSimulator: React.FC = () => {
   const [rotateSpeed, setRotateSpeed] = useState(1.0);
   const periodicSimulationUrl = '/simulations/chemsphere_nepal_periodic_table.html';
   const ionicCovalentSimulationUrl = '/simulations/ionic-covalent-simulator/dist/index.html';
-  const isEmbeddedTopic = selectedTopic === 'periodic' || selectedTopic === 'ionic-covalent';
+  const lewisSimulationUrl = '/simulations/lewis-structure-generator/dist/index.html';
+  const isEmbeddedTopic = selectedTopic === 'periodic' || selectedTopic === 'ionic-covalent' || selectedTopic === 'lewis-generator';
 
   const topicTitle =
     selectedTopic === 'periodic'
       ? 'Periodic Table Simulation'
       : selectedTopic === 'ionic-covalent'
         ? 'Ionic & Covalent Bond Simulator'
-        : 'Bond Simulation Lab';
+        : selectedTopic === 'lewis-generator'
+          ? 'Lewis Structure Generator'
+          : 'Bond Simulation Lab';
 
   const topicSubtitle =
     selectedTopic === 'periodic'
       ? 'Explore elements, periods, groups, and properties.'
       : selectedTopic === 'ionic-covalent'
         ? 'Compare ionic and covalent bonding behavior interactively.'
-        : 'Select a molecule · drag to rotate · scroll to zoom';
+        : selectedTopic === 'lewis-generator'
+          ? 'Build Lewis structures and electron-dot diagrams.'
+          : 'Select a molecule · drag to rotate · scroll to zoom';
 
   const embeddedSimulationUrl =
-    selectedTopic === 'ionic-covalent' ? ionicCovalentSimulationUrl : periodicSimulationUrl;
+    selectedTopic === 'ionic-covalent' ? ionicCovalentSimulationUrl : (selectedTopic === 'lewis-generator' ? lewisSimulationUrl : periodicSimulationUrl);
 
   const embeddedTopicLabel =
-    selectedTopic === 'ionic-covalent' ? 'Ionic & Covalent bond simulation loaded from your HTML file.' : 'Interactive periodic table loaded from your HTML simulation.';
+    selectedTopic === 'ionic-covalent' ? 'Ionic & Covalent bond simulation loaded from your HTML file.' : (selectedTopic === 'lewis-generator' ? 'Lewis Structure Generator loaded from your HTML file.' : 'Interactive periodic table loaded from your HTML simulation.');
  
   // unique elements across all molecules
   const usedSymbols = Array.from(
@@ -585,6 +590,22 @@ export const BondSimulator: React.FC = () => {
               <h3 className="text-2xl font-black text-white">Ionic & Covalent Bond Simulator</h3>
               <p className="text-white/55 text-sm mt-2 leading-relaxed">
                 Compare electron transfer and electron sharing with an interactive bond simulation.
+              </p>
+              <span className="inline-flex mt-5 items-center gap-2 text-cyan-300 text-sm font-bold group-hover:gap-3 transition-all">
+                Open Simulation <ChevronRight size={16} />
+              </span>
+            </button>
+
+            <button
+              onClick={() => handleTopicEnter('lewis-generator')}
+              className="group text-left p-6 rounded-3xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-cyan-500/40 transition-all"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/15 text-purple-300 flex items-center justify-center mb-4">
+                <Beaker size={24} />
+              </div>
+              <h3 className="text-2xl font-black text-white">Lewis Structure Generator</h3>
+              <p className="text-white/55 text-sm mt-2 leading-relaxed">
+                Build Lewis structures and electron-dot diagrams interactively.
               </p>
               <span className="inline-flex mt-5 items-center gap-2 text-cyan-300 text-sm font-bold group-hover:gap-3 transition-all">
                 Open Simulation <ChevronRight size={16} />
