@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+/* Custom font classes */
+.font-orbitron {
+  font-family: 'Orbitron', sans-serif;
+}
+
+.font-rajdhani {
+  font-family: 'Rajdhani', sans-serif;
+}
+
+/* Neon glow utilities */
+.neon-blue {
+  text-shadow: 0 0 10px #60A5FA, 0 0 20px #3B82F6, 0 0 40px #2563EB;
+}
+
+.neon-purple {
+  text-shadow: 0 0 10px #A78BFA, 0 0 20px #8B5CF6, 0 0 40px #7C3AED;
+}
+
+.neon-green {
+  text-shadow: 0 0 10px #34D399, 0 0 20px #10B981;
+}
+
+/* Glassmorphism base */
+.glass {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.8);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(96, 165, 250, 0.3);
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(96, 165, 250, 0.6);
+}
+
+/* Atom drag cursor */
+[draggable="true"] {
+  cursor: grab;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* Electron pulse animation */
+@keyframes electron-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.electron-pulse {
+  animation: electron-pulse 2s ease-in-out infinite;
+}
+
+/* Bond glow animation */
+@keyframes bond-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px #60A5FA); }
+  50% { filter: drop-shadow(0 0 12px #60A5FA) drop-shadow(0 0 24px #3B82F6); }
+}
+
+.bond-glow {
+  animation: bond-glow 1.5s ease-in-out infinite;
+}
+
+/* Scanning line animation for arena */
+@keyframes scan-line {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 0.3; }
+  90% { opacity: 0.3; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* Particle shimmer */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, #60A5FA, #A78BFA, #34D399, #60A5FA);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Orbit ring */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+}
+
+/* Smooth transitions */
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Arena drop zone indicator */
+.drop-zone-active {
+  box-shadow: inset 0 0 30px rgba(96, 165, 250, 0.2);
+  border-color: rgba(96, 165, 250, 0.6) !important;
+}
+
+/* Card hover lift */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* Prevent text selection during drag */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  overflow: hidden;
+  background: #020617;
+}

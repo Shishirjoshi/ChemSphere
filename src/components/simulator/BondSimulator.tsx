@@ -491,7 +491,7 @@ export const BondSimulator: React.FC = () => {
   const [wireframe, setWireframe] = useState(false);
   const [rotateSpeed, setRotateSpeed] = useState(1.0);
   const periodicSimulationUrl = '/simulations/chemsphere_nepal_periodic_table.html';
-  const ionicCovalentSimulationUrl = '/simulations/ionic_covalent_bond_simulator.html';
+  const ionicCovalentSimulationUrl = '/simulations/ionic-covalent-simulator/dist/index.html';
   const isEmbeddedTopic = selectedTopic === 'periodic' || selectedTopic === 'ionic-covalent';
 
   const topicTitle =
