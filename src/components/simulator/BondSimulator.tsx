@@ -478,7 +478,7 @@ const MoleculeViewer3D: React.FC<ViewerProps> = ({
 // ─── Main Component ───────────────────────────────────────────────────────────
  
 type InfoTab = 'desc' | 'lewis' | 'facts' | 'periodic';
-type SimulationTopic = 'bonding' | 'periodic';
+type SimulationTopic = 'bonding' | 'periodic' | 'ionic-covalent';
  
 export const BondSimulator: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<SimulationTopic | null>(null);
@@ -491,6 +491,28 @@ export const BondSimulator: React.FC = () => {
   const [wireframe, setWireframe] = useState(false);
   const [rotateSpeed, setRotateSpeed] = useState(1.0);
   const periodicSimulationUrl = '/simulations/chemsphere_nepal_periodic_table.html';
+  const ionicCovalentSimulationUrl = '/simulations/ionic_covalent_bond_simulator.html';
+  const isEmbeddedTopic = selectedTopic === 'periodic' || selectedTopic === 'ionic-covalent';
+
+  const topicTitle =
+    selectedTopic === 'periodic'
+      ? 'Periodic Table Simulation'
+      : selectedTopic === 'ionic-covalent'
+        ? 'Ionic & Covalent Bond Simulator'
+        : 'Bond Simulation Lab';
+
+  const topicSubtitle =
+    selectedTopic === 'periodic'
+      ? 'Explore elements, periods, groups, and properties.'
+      : selectedTopic === 'ionic-covalent'
+        ? 'Compare ionic and covalent bonding behavior interactively.'
+        : 'Select a molecule · drag to rotate · scroll to zoom';
+
+  const embeddedSimulationUrl =
+    selectedTopic === 'ionic-covalent' ? ionicCovalentSimulationUrl : periodicSimulationUrl;
+
+  const embeddedTopicLabel =
+    selectedTopic === 'ionic-covalent' ? 'Ionic & Covalent bond simulation loaded from your HTML file.' : 'Interactive periodic table loaded from your HTML simulation.';
  
   // unique elements across all molecules
   const usedSymbols = Array.from(
@@ -520,7 +542,7 @@ export const BondSimulator: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             <button
               onClick={() => handleTopicEnter('bonding')}
               className="group text-left p-6 rounded-3xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-cyan-500/40 transition-all"
@@ -552,6 +574,22 @@ export const BondSimulator: React.FC = () => {
                 Open Simulation <ChevronRight size={16} />
               </span>
             </button>
+
+            <button
+              onClick={() => handleTopicEnter('ionic-covalent')}
+              className="group text-left p-6 rounded-3xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-cyan-500/40 transition-all"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center mb-4">
+                <Zap size={24} />
+              </div>
+              <h3 className="text-2xl font-black text-white">Ionic & Covalent Bond Simulator</h3>
+              <p className="text-white/55 text-sm mt-2 leading-relaxed">
+                Compare electron transfer and electron sharing with an interactive bond simulation.
+              </p>
+              <span className="inline-flex mt-5 items-center gap-2 text-cyan-300 text-sm font-bold group-hover:gap-3 transition-all">
+                Open Simulation <ChevronRight size={16} />
+              </span>
+            </button>
           </div>
         </div>
       </div>
@@ -568,9 +606,9 @@ export const BondSimulator: React.FC = () => {
             <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-400">
               <Zap size={18} />
             </div>
-            <h2 className="text-2xl font-black text-white tracking-tight">Bond Simulation Lab</h2>
+            <h2 className="text-2xl font-black text-white tracking-tight">{topicTitle}</h2>
           </div>
-          <p className="text-white/40 text-sm ml-11">Select a molecule · drag to rotate · scroll to zoom</p>
+          <p className="text-white/40 text-sm ml-11">{topicSubtitle}</p>
           <button
             onClick={() => setSelectedTopic(null)}
             className="ml-11 mt-2 text-xs text-cyan-300 hover:text-cyan-200 font-bold"
@@ -578,20 +616,20 @@ export const BondSimulator: React.FC = () => {
             ← Back to simulation topics
           </button>
         </div>
-        <div className="flex items-center gap-3">
+        {selectedTopic === 'bonding' && <div className="flex items-center gap-3">
           <button
             onClick={() => { setAutoRotate(true); setShowLabels(true); setShowBonds(true); setWireframe(false); setRotateSpeed(1); }}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm font-bold hover:bg-white/10 transition-colors text-white/70"
           >
             <RefreshCw size={15} /> Reset View
           </button>
-        </div>
+        </div>}
       </div>
  
       {/* Main Grid */}
       <div className={cn(
         'grid gap-5 flex-1',
-        selectedTopic === 'periodic' ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-12'
+        isEmbeddedTopic ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-12'
       )}>
  
         {/* ── Left panel ── */}
@@ -662,7 +700,7 @@ export const BondSimulator: React.FC = () => {
         {/* ── Center: 3D viewer ── */}
         <div className={cn(
           'order-1 flex flex-col gap-3',
-          selectedTopic === 'periodic' ? 'xl:col-span-12' : 'xl:col-span-6 xl:order-2'
+          isEmbeddedTopic ? 'xl:col-span-12' : 'xl:col-span-6 xl:order-2'
         )}>
  
           {/* Viewer controls strip */}
@@ -700,9 +738,9 @@ export const BondSimulator: React.FC = () => {
             </div>
           ) : (
             <div className="flex items-center justify-between px-1">
-              <span className="text-xs text-white/45">Interactive periodic table loaded from your HTML simulation.</span>
+              <span className="text-xs text-white/45">{embeddedTopicLabel}</span>
               <a
-                href={periodicSimulationUrl}
+                href={embeddedSimulationUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="text-xs text-cyan-300 hover:text-cyan-200 font-bold"
@@ -775,8 +813,8 @@ export const BondSimulator: React.FC = () => {
               </>
             ) : (
               <iframe
-                src={periodicSimulationUrl}
-                title="ChemSphere Nepal Periodic Table Simulation"
+                src={embeddedSimulationUrl}
+                title={selectedTopic === 'ionic-covalent' ? 'ChemSphere Ionic and Covalent Bond Simulator' : 'ChemSphere Nepal Periodic Table Simulation'}
                 className="w-full h-full border-0"
               />
             )}

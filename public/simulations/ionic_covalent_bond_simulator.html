@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChemSphere Ionic and Covalent Bond Simulator</title>
+  <style>
+    :root {
+      --bg: #030811;
+      --panel: #0a1426;
+      --line: #1a2b43;
+      --text: #dff2ff;
+      --muted: #8da7c2;
+      --ionic: #f7c948;
+      --covalent: #3dd9b0;
+      --accent: #24d1ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(36, 209, 255, 0.16), transparent 45%),
+        radial-gradient(circle at 90% 10%, rgba(247, 201, 72, 0.14), transparent 40%),
+        linear-gradient(180deg, #050d1c, var(--bg));
+      color: var(--text);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .app {
+      width: min(1200px, 100%);
+      background: rgba(6, 14, 28, 0.88);
+      border: 1px solid rgba(103, 137, 170, 0.3);
+      border-radius: 20px;
+      display: grid;
+      grid-template-columns: 330px 1fr;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    .left {
+      padding: 22px;
+      border-right: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(14, 28, 50, 0.6), rgba(9, 19, 36, 0.4));
+    }
+
+    .right {
+      padding: 24px;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .switch {
+      margin-top: 20px;
+      background: rgba(3, 10, 20, 0.7);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 6px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .switch button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .switch button.active-ionic {
+      background: color-mix(in srgb, var(--ionic) 18%, transparent);
+      color: #ffe9a9;
+    }
+
+    .switch button.active-covalent {
+      background: color-mix(in srgb, var(--covalent) 18%, transparent);
+      color: #b8ffe9;
+    }
+
+    .control-group {
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(4, 12, 23, 0.65);
+    }
+
+    .label {
+      font-size: 0.72rem;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .meta {
+      margin-top: 16px;
+      font-size: 0.86rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .badge {
+      border: 1px solid var(--line);
+      background: rgba(6, 15, 29, 0.8);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      color: #c4ddf6;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .bond-name {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin: 0;
+    }
+
+    .bond-hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .diagram {
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: radial-gradient(circle at top, rgba(44, 83, 125, 0.18), rgba(8, 15, 29, 0.9));
+      padding: 18px;
+      display: grid;
+      place-items: center;
+      min-height: 260px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .diagram svg {
+      width: min(480px, 95%);
+      height: auto;
+    }
+
+    .legend {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      background: rgba(4, 12, 23, 0.65);
+      color: #d2e7fb;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .legend strong {
+      color: #ffffff;
+    }
+
+    .ionic-color { color: var(--ionic); }
+    .covalent-color { color: var(--covalent); }
+
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .left {
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="left">
+      <h1>Ionic & Covalent Bond Simulator</h1>
+      <p class="subtitle">Switch bond type to compare electron transfer versus electron sharing.</p>
+
+      <div class="switch" role="tablist" aria-label="Bond type selector">
+        <button id="ionicBtn" class="active-ionic" aria-selected="true">Ionic Bond</button>
+        <button id="covalentBtn" aria-selected="false">Covalent Bond</button>
+      </div>
+
+      <div class="control-group">
+        <label class="label" for="energySlider">Bond Energy</label>
+        <input id="energySlider" type="range" min="1" max="10" value="6" />
+      </div>
+
+      <div class="control-group">
+        <label class="label" for="distanceSlider">Atom Distance</label>
+        <input id="distanceSlider" type="range" min="2" max="12" value="6" />
+      </div>
+
+      <div class="badges">
+        <span class="badge">Grade 11-12 NEB</span>
+        <span class="badge">Interactive Model</span>
+        <span class="badge">Concept Builder</span>
+      </div>
+
+      <p class="meta" id="metaText">
+        Ionic bonding happens when one atom transfers electrons to another atom, creating positive and negative ions.
+      </p>
+    </section>
+
+    <section class="right">
+      <div class="top-row">
+        <h2 class="bond-name ionic-color" id="bondName">Ionic Bond</h2>
+        <p class="bond-hint" id="bondHint">Electron transfer model</p>
+      </div>
+
+      <div class="diagram" id="diagramHolder" aria-live="polite"></div>
+
+      <article class="legend" id="legendText">
+        <strong class="ionic-color">Ionic bonding:</strong> A metal atom donates electron(s), and a nonmetal atom accepts them.
+        Electrostatic attraction between oppositely charged ions forms the bond.
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const ionicBtn = document.getElementById('ionicBtn');
+    const covalentBtn = document.getElementById('covalentBtn');
+    const energySlider = document.getElementById('energySlider');
+    const distanceSlider = document.getElementById('distanceSlider');
+
+    const bondName = document.getElementById('bondName');
+    const bondHint = document.getElementById('bondHint');
+    const legendText = document.getElementById('legendText');
+    const metaText = document.getElementById('metaText');
+    const diagramHolder = document.getElementById('diagramHolder');
+
+    let mode = 'ionic';
+
+    function renderDiagram() {
+      const energy = Number(energySlider.value);
+      const distance = Number(distanceSlider.value);
+      const gap = 90 + distance * 8;
+      const pulse = 0.1 + energy / 50;
+
+      if (mode === 'ionic') {
+        diagramHolder.innerHTML = `
+          <svg viewBox="0 0 540 260" role="img" aria-label="Ionic bond electron transfer diagram">
+            <defs>
+              <marker id="arrowI" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+                <polygon points="0,0 10,4 0,8" fill="#f7c948"></polygon>
+              </marker>
+            </defs>
+            <circle cx="${270 - gap / 2}" cy="130" r="52" fill="rgba(247,201,72,0.16)" stroke="#f7c948" stroke-width="2"/>
+            <circle cx="${270 + gap / 2}" cy="130" r="56" fill="rgba(61,217,176,0.14)" stroke="#3dd9b0" stroke-width="2"/>
+            <text x="${270 - gap / 2}" y="136" text-anchor="middle" fill="#f7c948" font-size="32" font-weight="700">Na</text>
+            <text x="${270 + gap / 2}" y="136" text-anchor="middle" fill="#3dd9b0" font-size="32" font-weight="700">Cl</text>
+            <line x1="${270 - gap / 2 + 58}" y1="130" x2="${270 + gap / 2 - 64}" y2="130" stroke="#f7c948" stroke-width="3" marker-end="url(#arrowI)"/>
+            <text x="270" y="110" text-anchor="middle" fill="#ffe9a9" font-size="14">electron transfer</text>
+            <text x="${270 - gap / 2}" y="198" text-anchor="middle" fill="#ffd56e" font-size="16">Na+</text>
+            <text x="${270 + gap / 2}" y="198" text-anchor="middle" fill="#9df5dc" font-size="16">Cl-</text>
+            <rect x="154" y="218" width="232" height="24" rx="12" fill="rgba(247,201,72,${pulse})" stroke="#f7c948"/>
+            <text x="270" y="234" text-anchor="middle" fill="#ffe9a9" font-size="12">Electrostatic attraction increases with energy</text>
+          </svg>
+        `;
+      } else {
+        diagramHolder.innerHTML = `
+          <svg viewBox="0 0 540 260" role="img" aria-label="Covalent bond electron sharing diagram">
+            <circle cx="${270 - gap / 2}" cy="130" r="52" fill="rgba(61,217,176,0.12)" stroke="#3dd9b0" stroke-width="2"/>
+            <circle cx="${270 + gap / 2}" cy="130" r="52" fill="rgba(61,217,176,0.12)" stroke="#3dd9b0" stroke-width="2"/>
+            <ellipse cx="270" cy="130" rx="${Math.max(26, 88 - distance * 4)}" ry="30" fill="rgba(61,217,176,${pulse})" stroke="#3dd9b0" stroke-width="2"/>
+            <text x="${270 - gap / 2}" y="136" text-anchor="middle" fill="#8ff5d9" font-size="28" font-weight="700">H</text>
+            <text x="${270 + gap / 2}" y="136" text-anchor="middle" fill="#8ff5d9" font-size="28" font-weight="700">H</text>
+            <text x="270" y="128" text-anchor="middle" fill="#b8ffe9" font-size="13">shared electron pair</text>
+            <text x="270" y="228" text-anchor="middle" fill="#b8ffe9" font-size="12">Higher energy means stronger overlap in this model</text>
+          </svg>
+        `;
+      }
+    }
+
+    function setMode(nextMode) {
+      mode = nextMode;
+      const ionic = mode === 'ionic';
+
+      ionicBtn.className = ionic ? 'active-ionic' : '';
+      covalentBtn.className = ionic ? '' : 'active-covalent';
+      ionicBtn.setAttribute('aria-selected', ionic ? 'true' : 'false');
+      covalentBtn.setAttribute('aria-selected', ionic ? 'false' : 'true');
+
+      if (ionic) {
+        bondName.textContent = 'Ionic Bond';
+        bondName.className = 'bond-name ionic-color';
+        bondHint.textContent = 'Electron transfer model';
+        legendText.innerHTML = '<strong class="ionic-color">Ionic bonding:</strong> A metal atom donates electron(s), and a nonmetal atom accepts them. Electrostatic attraction between oppositely charged ions forms the bond.';
+        metaText.textContent = 'Ionic bonding happens when one atom transfers electrons to another atom, creating positive and negative ions.';
+      } else {
+        bondName.textContent = 'Covalent Bond';
+        bondName.className = 'bond-name covalent-color';
+        bondHint.textContent = 'Electron sharing model';
+        legendText.innerHTML = '<strong class="covalent-color">Covalent bonding:</strong> Nonmetal atoms share electron pairs. Shared electrons occupy overlapping regions between nuclei and stabilize the molecule.';
+        metaText.textContent = 'Covalent bonds are formed by sharing electron pairs, often producing directional molecular shapes.';
+      }
+
+      renderDiagram();
+    }
+
+    ionicBtn.addEventListener('click', () => setMode('ionic'));
+    covalentBtn.addEventListener('click', () => setMode('covalent'));
+    energySlider.addEventListener('input', renderDiagram);
+    distanceSlider.addEventListener('input', renderDiagram);
+
+    setMode('ionic');
+  </script>
+</body>
+</html>
