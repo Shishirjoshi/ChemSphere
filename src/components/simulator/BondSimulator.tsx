@@ -589,9 +589,13 @@ export const BondSimulator: React.FC = () => {
       </div>
  
       {/* Main Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 flex-1">
+      <div className={cn(
+        'grid gap-5 flex-1',
+        selectedTopic === 'periodic' ? 'grid-cols-1' : 'grid-cols-1 xl:grid-cols-12'
+      )}>
  
         {/* ── Left panel ── */}
+        {selectedTopic === 'bonding' && (
         <div className="xl:col-span-3 flex flex-col gap-5 order-2 xl:order-1">
  
           {/* Element legend */}
@@ -653,9 +657,13 @@ export const BondSimulator: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
  
         {/* ── Center: 3D viewer ── */}
-        <div className="xl:col-span-6 order-1 xl:order-2 flex flex-col gap-3">
+        <div className={cn(
+          'order-1 flex flex-col gap-3',
+          selectedTopic === 'periodic' ? 'xl:col-span-12' : 'xl:col-span-6 xl:order-2'
+        )}>
  
           {/* Viewer controls strip */}
           {selectedTopic === 'bonding' ? (
@@ -776,6 +784,7 @@ export const BondSimulator: React.FC = () => {
         </div>
  
         {/* ── Right panel ── */}
+        {selectedTopic === 'bonding' && (
         <div className="xl:col-span-3 flex flex-col gap-5 order-3">
  
           {/* Quick stats */}
@@ -971,6 +980,7 @@ export const BondSimulator: React.FC = () => {
             </AnimatePresence>
           </div>
         </div>
+        )}
       </div>
     </div>
   );
