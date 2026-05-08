@@ -175,6 +175,61 @@ const ELEMENT_COLORS: Record<string, { hex: number; css: string; text: string }>
   Na: { hex: 0xaa66ff, css: '#aa66ff', text: '#fff' },
   Cl: { hex: 0x44cc66, css: '#44cc66', text: '#fff' },
 };
+
+interface PeriodicElement {
+  symbol: string;
+  name: string;
+  atomicNumber: number;
+  group: string;
+  period: number;
+  category: string;
+  valenceElectrons: number;
+  commonCharge: string;
+  bondBehavior: string;
+}
+
+const PERIODIC_TABLE_DATA: PeriodicElement[] = [
+  {
+    symbol: 'H', name: 'Hydrogen', atomicNumber: 1, group: '1', period: 1,
+    category: 'Nonmetal', valenceElectrons: 1, commonCharge: '+1 / -1',
+    bondBehavior: 'Forms single covalent bonds in most organic and inorganic molecules.',
+  },
+  {
+    symbol: 'C', name: 'Carbon', atomicNumber: 6, group: '14', period: 2,
+    category: 'Nonmetal', valenceElectrons: 4, commonCharge: '±4',
+    bondBehavior: 'Tetravalent atom that can form chains, rings, and double bonds.',
+  },
+  {
+    symbol: 'N', name: 'Nitrogen', atomicNumber: 7, group: '15', period: 2,
+    category: 'Nonmetal', valenceElectrons: 5, commonCharge: '-3',
+    bondBehavior: 'Usually forms 3 covalent bonds with one lone pair.',
+  },
+  {
+    symbol: 'O', name: 'Oxygen', atomicNumber: 8, group: '16', period: 2,
+    category: 'Nonmetal', valenceElectrons: 6, commonCharge: '-2',
+    bondBehavior: 'Highly electronegative atom commonly making 2 covalent bonds.',
+  },
+  {
+    symbol: 'F', name: 'Fluorine', atomicNumber: 9, group: '17', period: 2,
+    category: 'Halogen', valenceElectrons: 7, commonCharge: '-1',
+    bondBehavior: 'Very strong electron attractor, usually forms one single bond.',
+  },
+  {
+    symbol: 'Na', name: 'Sodium', atomicNumber: 11, group: '1', period: 3,
+    category: 'Alkali Metal', valenceElectrons: 1, commonCharge: '+1',
+    bondBehavior: 'Readily loses one electron and forms ionic bonds.',
+  },
+  {
+    symbol: 'Cl', name: 'Chlorine', atomicNumber: 17, group: '17', period: 3,
+    category: 'Halogen', valenceElectrons: 7, commonCharge: '-1',
+    bondBehavior: 'Commonly gains one electron to complete octet in ionic compounds.',
+  },
+  {
+    symbol: 'B', name: 'Boron', atomicNumber: 5, group: '13', period: 2,
+    category: 'Metalloid', valenceElectrons: 3, commonCharge: '+3',
+    bondBehavior: 'Electron-deficient center that acts as a Lewis acid.',
+  },
+];
  
 // ─── Molecule Viewer (Three.js) ───────────────────────────────────────────────
  
@@ -422,16 +477,20 @@ const MoleculeViewer3D: React.FC<ViewerProps> = ({
  
 // ─── Main Component ───────────────────────────────────────────────────────────
  
-type InfoTab = 'desc' | 'lewis' | 'facts';
+type InfoTab = 'desc' | 'lewis' | 'facts' | 'periodic';
+type SimulationTopic = 'bonding' | 'periodic';
  
 export const BondSimulator: React.FC = () => {
+  const [selectedTopic, setSelectedTopic] = useState<SimulationTopic | null>(null);
   const [selected, setSelected] = useState<Molecule>(MOLECULES[0]);
   const [infoTab, setInfoTab] = useState<InfoTab>('desc');
+  const [selectedElement, setSelectedElement] = useState<PeriodicElement>(PERIODIC_TABLE_DATA[0]);
   const [autoRotate, setAutoRotate] = useState(true);
   const [showLabels, setShowLabels] = useState(true);
   const [showBonds, setShowBonds] = useState(true);
   const [wireframe, setWireframe] = useState(false);
   const [rotateSpeed, setRotateSpeed] = useState(1.0);
+  const periodicSimulationUrl = '/simulations/chemsphere_nepal_periodic_table.html';
  
   // unique elements across all molecules
   const usedSymbols = Array.from(
@@ -442,6 +501,62 @@ export const BondSimulator: React.FC = () => {
     setSelected(mol);
     setInfoTab('desc');
   };
+
+  const handleTopicEnter = (topic: SimulationTopic) => {
+    setSelectedTopic(topic);
+    setInfoTab(topic === 'periodic' ? 'periodic' : 'desc');
+  };
+
+  const moleculeContainsElement = selected.atoms.some(a => a.symbol === selectedElement.symbol);
+
+  if (!selectedTopic) {
+    return (
+      <div className="min-h-[calc(100vh-80px)] p-4 lg:p-6 bg-[#030811]">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8">
+            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">Simulation Topics</h2>
+            <p className="text-white/45 mt-2 text-sm md:text-base">
+              Choose a topic to enter the simulator.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <button
+              onClick={() => handleTopicEnter('bonding')}
+              className="group text-left p-6 rounded-3xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-cyan-500/40 transition-all"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center mb-4">
+                <GitBranch size={24} />
+              </div>
+              <h3 className="text-2xl font-black text-white">Bonding Simulation</h3>
+              <p className="text-white/55 text-sm mt-2 leading-relaxed">
+                Explore molecular geometry, bond angles, atom arrangement, and Lewis structures in 3D.
+              </p>
+              <span className="inline-flex mt-5 items-center gap-2 text-cyan-300 text-sm font-bold group-hover:gap-3 transition-all">
+                Open Simulation <ChevronRight size={16} />
+              </span>
+            </button>
+
+            <button
+              onClick={() => handleTopicEnter('periodic')}
+              className="group text-left p-6 rounded-3xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-cyan-500/40 transition-all"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/15 text-blue-300 flex items-center justify-center mb-4">
+                <Beaker size={24} />
+              </div>
+              <h3 className="text-2xl font-black text-white">Periodic Table Topic</h3>
+              <p className="text-white/55 text-sm mt-2 leading-relaxed">
+                Study element properties, valence electrons, periodic groups, and bonding behavior.
+              </p>
+              <span className="inline-flex mt-5 items-center gap-2 text-cyan-300 text-sm font-bold group-hover:gap-3 transition-all">
+                Open Simulation <ChevronRight size={16} />
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
  
   return (
     <div className="min-h-[calc(100vh-80px)] p-4 lg:p-6 flex flex-col gap-5 bg-[#030811]">
@@ -456,6 +571,12 @@ export const BondSimulator: React.FC = () => {
             <h2 className="text-2xl font-black text-white tracking-tight">Bond Simulation Lab</h2>
           </div>
           <p className="text-white/40 text-sm ml-11">Select a molecule · drag to rotate · scroll to zoom</p>
+          <button
+            onClick={() => setSelectedTopic(null)}
+            className="ml-11 mt-2 text-xs text-cyan-300 hover:text-cyan-200 font-bold"
+          >
+            ← Back to simulation topics
+          </button>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -537,96 +658,120 @@ export const BondSimulator: React.FC = () => {
         <div className="xl:col-span-6 order-1 xl:order-2 flex flex-col gap-3">
  
           {/* Viewer controls strip */}
-          <div className="flex flex-wrap gap-2 px-1">
-            {[
-              { label: autoRotate ? 'Auto ⟳' : 'Paused', icon: <RotateCcw size={13}/>, active: autoRotate, onClick: () => setAutoRotate(v => !v) },
-              { label: showLabels ? 'Labels On' : 'Labels Off', icon: <Eye size={13}/>, active: showLabels, onClick: () => setShowLabels(v => !v) },
-              { label: showBonds ? 'Bonds On' : 'Bonds Off', icon: <GitBranch size={13}/>, active: showBonds, onClick: () => setShowBonds(v => !v) },
-              { label: wireframe ? 'Wireframe' : 'Solid', icon: <Box size={13}/>, active: wireframe, onClick: () => setWireframe(v => !v) },
-            ].map(btn => (
-              <button
-                key={btn.label}
-                onClick={btn.onClick}
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all',
-                  btn.active
-                    ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-400'
-                    : 'bg-white/[0.04] border-white/10 text-white/40 hover:text-white/70',
-                )}
-              >
-                {btn.icon} {btn.label}
-              </button>
-            ))}
-            <div className="flex items-center gap-2 ml-auto">
-              <span className="text-[10px] text-white/30 uppercase tracking-widest">Speed</span>
-              <input
-                type="range" min={0.2} max={3} step={0.1}
-                value={rotateSpeed}
-                onChange={e => setRotateSpeed(parseFloat(e.target.value))}
-                className="w-20 accent-cyan-500"
-              />
-              <span className="text-xs text-cyan-400 font-mono w-8">{rotateSpeed.toFixed(1)}×</span>
+          {selectedTopic === 'bonding' ? (
+            <div className="flex flex-wrap gap-2 px-1">
+              {[
+                { label: autoRotate ? 'Auto ⟳' : 'Paused', icon: <RotateCcw size={13}/>, active: autoRotate, onClick: () => setAutoRotate(v => !v) },
+                { label: showLabels ? 'Labels On' : 'Labels Off', icon: <Eye size={13}/>, active: showLabels, onClick: () => setShowLabels(v => !v) },
+                { label: showBonds ? 'Bonds On' : 'Bonds Off', icon: <GitBranch size={13}/>, active: showBonds, onClick: () => setShowBonds(v => !v) },
+                { label: wireframe ? 'Wireframe' : 'Solid', icon: <Box size={13}/>, active: wireframe, onClick: () => setWireframe(v => !v) },
+              ].map(btn => (
+                <button
+                  key={btn.label}
+                  onClick={btn.onClick}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all',
+                    btn.active
+                      ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-400'
+                      : 'bg-white/[0.04] border-white/10 text-white/40 hover:text-white/70',
+                  )}
+                >
+                  {btn.icon} {btn.label}
+                </button>
+              ))}
+              <div className="flex items-center gap-2 ml-auto">
+                <span className="text-[10px] text-white/30 uppercase tracking-widest">Speed</span>
+                <input
+                  type="range" min={0.2} max={3} step={0.1}
+                  value={rotateSpeed}
+                  onChange={e => setRotateSpeed(parseFloat(e.target.value))}
+                  className="w-20 accent-cyan-500"
+                />
+                <span className="text-xs text-cyan-400 font-mono w-8">{rotateSpeed.toFixed(1)}×</span>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs text-white/45">Interactive periodic table loaded from your HTML simulation.</span>
+              <a
+                href={periodicSimulationUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-cyan-300 hover:text-cyan-200 font-bold"
+              >
+                Open Fullscreen
+              </a>
+            </div>
+          )}
  
           {/* Canvas container */}
           <div className="relative flex-1 min-h-[420px] rounded-3xl bg-black/60 border border-white/10 overflow-hidden shadow-2xl">
  
-            {/* HUD top-left */}
-            <div className="absolute top-5 left-5 z-10 pointer-events-none">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={selected.id}
-                  initial={{ opacity: 0, y: -6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={{ duration: 0.25 }}
-                  className="px-4 py-2 rounded-xl bg-[#050B18]/90 backdrop-blur-md border border-white/10"
-                >
-                  <span className="text-[9px] font-bold text-cyan-400 uppercase tracking-widest block">Structure</span>
-                  <h4 className="font-black text-lg text-white leading-tight">{selected.name}</h4>
-                  <span className="text-cyan-400 font-mono text-sm">{selected.formula}</span>
-                </motion.div>
-              </AnimatePresence>
-            </div>
- 
-            <MoleculeViewer3D
-              molecule={selected}
-              showLabels={showLabels}
-              showBonds={showBonds}
-              wireframe={wireframe}
-              autoRotate={autoRotate}
-              rotateSpeed={rotateSpeed}
-            />
- 
-            {/* Bottom stats bar */}
-            <div className="absolute bottom-0 left-0 right-0 z-10 flex justify-center pb-5 pointer-events-none">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={selected.id + '-bar'}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex items-center gap-0 rounded-2xl bg-[#050B18]/90 backdrop-blur-md border border-white/10 overflow-hidden"
-                >
-                  {[
-                    { label: 'Geometry', value: selected.geometry },
-                    { label: 'Bond Angle', value: selected.bondAngle },
-                    { label: 'Type', value: selected.subtype },
-                    { label: 'Stability', value: selected.stability, color: selected.stabilityColor },
-                  ].map((s, i) => (
-                    <React.Fragment key={s.label}>
-                      {i > 0 && <div className="w-px h-10 bg-white/10" />}
-                      <div className="px-5 py-2.5 text-center">
-                        <span className="text-[8px] font-bold text-white/25 uppercase tracking-widest block mb-0.5">{s.label}</span>
-                        <span className="text-xs font-bold" style={s.color ? { color: s.color } : { color: '#d0eaff' }}>{s.value}</span>
-                      </div>
-                    </React.Fragment>
-                  ))}
-                </motion.div>
-              </AnimatePresence>
-            </div>
+            {selectedTopic === 'bonding' ? (
+              <>
+                {/* HUD top-left */}
+                <div className="absolute top-5 left-5 z-10 pointer-events-none">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={selected.id}
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      transition={{ duration: 0.25 }}
+                      className="px-4 py-2 rounded-xl bg-[#050B18]/90 backdrop-blur-md border border-white/10"
+                    >
+                      <span className="text-[9px] font-bold text-cyan-400 uppercase tracking-widest block">Structure</span>
+                      <h4 className="font-black text-lg text-white leading-tight">{selected.name}</h4>
+                      <span className="text-cyan-400 font-mono text-sm">{selected.formula}</span>
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+
+                <MoleculeViewer3D
+                  molecule={selected}
+                  showLabels={showLabels}
+                  showBonds={showBonds}
+                  wireframe={wireframe}
+                  autoRotate={autoRotate}
+                  rotateSpeed={rotateSpeed}
+                />
+
+                {/* Bottom stats bar */}
+                <div className="absolute bottom-0 left-0 right-0 z-10 flex justify-center pb-5 pointer-events-none">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={selected.id + '-bar'}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex items-center gap-0 rounded-2xl bg-[#050B18]/90 backdrop-blur-md border border-white/10 overflow-hidden"
+                    >
+                      {[
+                        { label: 'Geometry', value: selected.geometry },
+                        { label: 'Bond Angle', value: selected.bondAngle },
+                        { label: 'Type', value: selected.subtype },
+                        { label: 'Stability', value: selected.stability, color: selected.stabilityColor },
+                      ].map((s, i) => (
+                        <React.Fragment key={s.label}>
+                          {i > 0 && <div className="w-px h-10 bg-white/10" />}
+                          <div className="px-5 py-2.5 text-center">
+                            <span className="text-[8px] font-bold text-white/25 uppercase tracking-widest block mb-0.5">{s.label}</span>
+                            <span className="text-xs font-bold" style={s.color ? { color: s.color } : { color: '#d0eaff' }}>{s.value}</span>
+                          </div>
+                        </React.Fragment>
+                      ))}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              </>
+            ) : (
+              <iframe
+                src={periodicSimulationUrl}
+                title="ChemSphere Nepal Periodic Table Simulation"
+                className="w-full h-full border-0"
+              />
+            )}
           </div>
         </div>
  
@@ -634,21 +779,34 @@ export const BondSimulator: React.FC = () => {
         <div className="xl:col-span-3 flex flex-col gap-5 order-3">
  
           {/* Quick stats */}
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { label: 'Atoms', value: selected.atoms.length },
-              { label: 'Bonds', value: selected.bonds.length },
-            ].map(s => (
-              <div key={s.label} className="p-3 rounded-xl bg-white/[0.04] border border-white/10 text-center">
-                <div className="text-[9px] font-bold text-white/25 uppercase tracking-widest mb-1">{s.label}</div>
-                <div className="text-2xl font-black text-white">{s.value}</div>
+          {selectedTopic === 'bonding' ? (
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: 'Atoms', value: selected.atoms.length },
+                { label: 'Bonds', value: selected.bonds.length },
+              ].map(s => (
+                <div key={s.label} className="p-3 rounded-xl bg-white/[0.04] border border-white/10 text-center">
+                  <div className="text-[9px] font-bold text-white/25 uppercase tracking-widest mb-1">{s.label}</div>
+                  <div className="text-2xl font-black text-white">{s.value}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10 text-center">
+                <div className="text-[9px] font-bold text-white/25 uppercase tracking-widest mb-1">Topic</div>
+                <div className="text-sm font-black text-white">Periodic Table</div>
               </div>
-            ))}
-          </div>
+              <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10 text-center">
+                <div className="text-[9px] font-bold text-white/25 uppercase tracking-widest mb-1">Mode</div>
+                <div className="text-sm font-black text-cyan-300">Interactive HTML</div>
+              </div>
+            </div>
+          )}
  
           {/* Tab switcher */}
           <div className="flex p-1 bg-white/[0.04] rounded-2xl border border-white/10 gap-1">
-            {(['desc', 'lewis', 'facts'] as InfoTab[]).map(tab => (
+            {(selectedTopic === 'periodic' ? ['periodic'] : ['desc', 'lewis', 'facts', 'periodic'] as InfoTab[]).map(tab => (
               <button
                 key={tab}
                 onClick={() => setInfoTab(tab)}
@@ -657,7 +815,7 @@ export const BondSimulator: React.FC = () => {
                   infoTab === tab ? 'bg-cyan-500 text-white shadow-lg' : 'text-white/35 hover:text-white/70',
                 )}
               >
-                {tab === 'desc' ? 'Info' : tab === 'lewis' ? 'Lewis' : 'Data'}
+                {tab === 'desc' ? 'Info' : tab === 'lewis' ? 'Lewis' : tab === 'facts' ? 'Data' : 'Periodic'}
               </button>
             ))}
           </div>
@@ -735,6 +893,78 @@ export const BondSimulator: React.FC = () => {
                     )}>
                       {selected.subtype}
                     </span>
+                  </div>
+                </motion.div>
+              )}
+
+              {infoTab === 'periodic' && (
+                <motion.div
+                  key="periodic"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.22 }}
+                  className="flex flex-col gap-3 h-full"
+                >
+                  <h4 className="font-bold text-white text-sm">Periodic Table Topic</h4>
+
+                  <div className="grid grid-cols-4 gap-2">
+                    {PERIODIC_TABLE_DATA.map(el => {
+                      const color = ELEMENT_COLORS[el.symbol]?.css ?? '#7dd3fc';
+                      return (
+                        <button
+                          key={el.symbol}
+                          onClick={() => setSelectedElement(el)}
+                          className={cn(
+                            'rounded-xl border px-2 py-2 text-left transition-all',
+                            selectedElement.symbol === el.symbol
+                              ? 'bg-cyan-500/10 border-cyan-500/50'
+                              : 'bg-white/[0.02] border-white/10 hover:bg-white/[0.06]'
+                          )}
+                        >
+                          <span className="block text-[10px] text-white/35 font-mono">{el.atomicNumber}</span>
+                          <span className="block text-sm font-black" style={{ color }}>{el.symbol}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="rounded-xl border border-white/10 bg-black/30 p-3.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white font-bold text-sm">{selectedElement.name}</span>
+                      <span className="text-[10px] px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-white/50">
+                        {selectedElement.symbol}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div className="text-white/45">Atomic No.</div>
+                      <div className="text-cyan-300 font-mono text-right">{selectedElement.atomicNumber}</div>
+                      <div className="text-white/45">Group / Period</div>
+                      <div className="text-cyan-300 font-mono text-right">{selectedElement.group} / {selectedElement.period}</div>
+                      <div className="text-white/45">Valence e⁻</div>
+                      <div className="text-cyan-300 font-mono text-right">{selectedElement.valenceElectrons}</div>
+                      <div className="text-white/45">Common charge</div>
+                      <div className="text-cyan-300 font-mono text-right">{selectedElement.commonCharge}</div>
+                      <div className="text-white/45">Category</div>
+                      <div className="text-cyan-300 text-right">{selectedElement.category}</div>
+                    </div>
+
+                    <p className="text-[11px] leading-relaxed text-white/60">
+                      {selectedElement.bondBehavior}
+                    </p>
+                  </div>
+
+                  <div className="mt-auto p-3 rounded-xl border border-white/10 bg-white/[0.02]">
+                    <span className="text-[9px] font-bold text-white/25 uppercase tracking-widest block mb-1">Current Molecule Match</span>
+                    <p className={cn(
+                      'text-xs font-bold',
+                      moleculeContainsElement ? 'text-emerald-300' : 'text-amber-300'
+                    )}>
+                      {moleculeContainsElement
+                        ? `${selected.name} contains ${selectedElement.symbol}.`
+                        : `${selected.name} does not include ${selectedElement.symbol}.`}
+                    </p>
                   </div>
                 </motion.div>
               )}

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --cyan:#00e5ff;--cyan2:#00bcd4;--bg:#020817;--bg2:#0a1628;--surface:rgba(255,255,255,0.05);
+  --border:rgba(255,255,255,0.1);--text:#e0f0ff;--muted:#4a6a8a;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+.light-mode{--bg:#f0f9ff;--bg2:#e0f2fe;--surface:rgba(255,255,255,0.8);--border:rgba(0,0,0,0.1);--text:#1e293b;--muted:#94a3b8}
+body.light-mode{background:var(--bg)}
+
+/* Floating bg */
+.float-mol{position:fixed;pointer-events:none;font-family:monospace;font-weight:900;opacity:0.05;z-index:0;animation:float linear infinite}
+@keyframes float{0%{transform:translate(0,0) rotate(0deg)}25%{transform:translate(20px,-30px) rotate(5deg)}75%{transform:translate(-15px,-20px) rotate(-5deg)}100%{transform:translate(0,0) rotate(0deg)}}
+
+.app{position:relative;z-index:1;max-width:1400px;margin:0 auto;padding:16px}
+
+/* Header */
+.header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(0,229,255,0.2),rgba(0,188,212,0.1));border:1px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.logo h1{font-size:22px;font-weight:900;background:linear-gradient(135deg,#00e5ff,#448aff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo p{font-size:11px;color:var(--muted);margin-top:2px}
+.header-btns{display:flex;gap:8px;align-items:center}
+.btn{padding:6px 14px;border-radius:10px;font-size:12px;font-weight:700;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:all 0.2s}
+.btn:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn.active{background:rgba(0,229,255,0.12);border-color:rgba(0,229,255,0.5);color:var(--cyan)}
+
+/* Search */
+.search-wrap{position:relative;max-width:380px;margin-bottom:14px}
+.search-wrap input{width:100%;padding:9px 36px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px;outline:none;transition:all 0.2s}
+.search-wrap input:focus{border-color:rgba(0,229,255,0.5);background:rgba(255,255,255,0.08)}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;opacity:0.4}
+.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;opacity:0.4;font-size:14px;display:none}
+
+/* Filters */
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.filter-btn{padding:5px 12px;border-radius:8px;font-size:11px;font-weight:700;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--muted);cursor:pointer;transition:all 0.2s;letter-spacing:0.3px}
+.filter-btn:hover{background:rgba(255,255,255,0.07)}
+.filter-btn.on{box-shadow:0 0 10px currentColor}
+
+/* Legend */
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:10px;opacity:0.55}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+/* Table */
+.table-wrap{border-radius:16px;padding:12px;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(20px);margin-bottom:14px;overflow-x:auto;box-shadow:0 0 80px rgba(0,229,255,0.04),inset 0 1px 0 rgba(255,255,255,0.04)}
+.pt-grid{display:grid;grid-template-columns:repeat(18,minmax(48px,1fr));gap:3px;min-width:900px}
+.el-cell{border-radius:8px;cursor:pointer;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);transition:all 0.18s;padding:4px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:54px;position:relative;overflow:hidden}
+.el-cell::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity 0.2s;background:radial-gradient(circle at center,currentColor 0%,transparent 70%)}
+.el-cell:hover{transform:scale(1.15);z-index:20;box-shadow:0 0 24px currentColor;border-color:currentColor}
+.el-cell:hover::before{opacity:0.15}
+.el-cell.dimmed{opacity:0.1;transform:none !important;box-shadow:none !important}
+.el-cell.highlighted{box-shadow:0 0 12px currentColor}
+.el-num{font-size:7px;opacity:0.45;font-family:monospace;line-height:1}
+.el-sym{font-size:17px;font-weight:900;line-height:1.1}
+.el-name{font-size:5px;opacity:0.55;line-height:1;text-align:center;width:100%;padding:0 1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.el-mass{font-size:5px;opacity:0.35;font-family:monospace;line-height:1}
+.empty{min-height:54px}
+
+/* Popup */
+.popup-bg{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity 0.2s}
+.popup-bg.open{opacity:1;pointer-events:all}
+.popup-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px)}
+.popup{position:relative;z-index:1;border-radius:20px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;background:#0d1e35;border:1.5px solid;box-shadow:0 30px 80px rgba(0,0,0,0.6);transform:scale(0.9) translateY(30px);transition:transform 0.25s,opacity 0.25s;opacity:0}
+.popup-bg.open .popup{transform:scale(1) translateY(0);opacity:1}
+.popup-header{padding:24px 24px 16px;position:relative}
+.popup-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.popup-close:hover{background:rgba(255,255,255,0.2)}
+.popup-top{display:flex;gap:16px;align-items:flex-start}
+.popup-symbol-box{border-radius:14px;padding:14px 18px;text-align:center;border:2px solid;min-width:90px;flex-shrink:0}
+.popup-atomic{font-size:11px;opacity:0.45;font-family:monospace}
+.popup-sym{font-size:42px;font-weight:900;line-height:1}
+.popup-mass{font-size:11px;opacity:0.45}
+.popup-name{font-size:24px;font-weight:900}
+.popup-badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:11px;font-weight:700;margin-top:6px}
+.popup-meta{font-size:12px;opacity:0.4;margin-top:4px}
+.popup-body{padding:0 24px 24px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:560px){.popup-body{grid-template-columns:1fr}}
+.shell-svg{display:block;margin:0 auto}
+.shell-config{text-align:center;font-family:monospace;font-size:13px;margin-top:6px}
+.shell-counts{display:flex;justify-content:center;flex-wrap:wrap;gap:5px;margin-top:6px}
+.shell-badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.section-label{font-size:10px;font-weight:900;letter-spacing:2px;opacity:0.4;text-transform:uppercase;margin-bottom:8px}
+.prop-row{display:flex;justify-content:space-between;padding:7px 12px;border-radius:8px;background:rgba(255,255,255,0.05);font-size:12px;margin-bottom:4px}
+.prop-val{font-family:monospace;font-weight:700}
+.info-box{padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.05);font-size:12px;margin-bottom:8px;line-height:1.5}
+.info-box .info-label{font-size:9px;font-weight:900;letter-spacing:2px;opacity:0.4;text-transform:uppercase;margin-bottom:4px}
+
+/* Trend bar */
+.trend-bar-row{display:flex;align-items:center;gap:8px;font-size:11px;margin-bottom:5px}
+.trend-label{width:22px;text-align:center;font-weight:700}
+.trend-track{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,0.08);overflow:hidden}
+.trend-fill{height:100%;border-radius:3px;transition:width 0.6s ease}
+.trend-val{width:50px;text-align:right;opacity:0.5;font-family:monospace}
+
+/* Trends panel */
+.trends-panel{border-radius:16px;padding:16px;border:1px solid var(--border);background:var(--surface);backdrop-filter:blur(20px);margin-bottom:14px}
+.trend-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.trend-content{overflow:hidden;max-height:0;transition:max-height 0.4s ease}
+.trend-content.open{max-height:400px}
+
+.footer{text-align:center;font-size:10px;color:var(--muted);padding:8px 0}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,229,255,0.2);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- Floating molecules -->
+<script>
+const mols=["H₂O","CO₂","NH₃","CH₄","NaCl","O₂","N₂","HCl","H₂SO₄","C₆H₁₂O₆","NaOH","HNO₃"];
+const colors=["#00e5ff","#448aff","#69f0ae","#ff7043","#ab47bc"];
+mols.forEach((m,i)=>{
+  const d=document.createElement('div');
+  d.className='float-mol';
+  d.textContent=m;
+  d.style.cssText=`left:${(i*8.3)%100}%;top:${(i*13+7)%90}%;font-size:${22+i*3}px;color:${colors[i%colors.length]};animation-duration:${10+i*2}s;animation-delay:-${i*1.5}s`;
+  document.body.appendChild(d);
+});
+</script>
+
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">⚗️</div>
+      <div>
+        <h1>ChemSphere Nepal</h1>
+        <p>Interactive Periodic Table · NEB +2 Chemistry</p>
+      </div>
+    </div>
+    <div class="header-btns">
+      <button class="btn" id="darkBtn" onclick="toggleDark()">☀️ Light</button>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search element, symbol, or number…" oninput="doSearch(this.value)">
+    <span class="search-clear" id="searchClear" onclick="clearSearch()">✕</span>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters" id="filters"></div>
+
+  <!-- Legend -->
+  <div class="legend" id="legend"></div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div class="pt-grid" id="ptGrid"></div>
+    <div style="text-align:center;font-size:10px;opacity:0.3;margin-top:8px">Click any element for details · Drag horizontally to scroll · Rows 5–7 show NEB +2 key elements</div>
+  </div>
+
+  <!-- Trends -->
+  <div class="trends-panel">
+    <div style="font-size:11px;font-weight:900;letter-spacing:2px;opacity:0.5;text-transform:uppercase;margin-bottom:10px">📈 Periodic Trends</div>
+    <div class="trend-tabs" id="trendTabs"></div>
+    <div class="trend-content" id="trendContent"></div>
+  </div>
+
+  <div class="footer">ChemSphere Nepal · NEB +2 Chemistry · Click any element to explore its structure and properties</div>
+</div>
+
+<!-- Popup -->
+<div class="popup-bg" id="popupBg" onclick="handleOverlayClick(event)">
+  <div class="popup-overlay"></div>
+  <div class="popup" id="popup" style="border-color:#00e5ff">
+    <div class="popup-header" id="popupHeader"></div>
+    <div class="popup-body" id="popupBody"></div>
+  </div>
+</div>
+
+<script>
+const CATS={
+  "alkali-metal":  {label:"Alkali Metals",    color:"#ef5350"},
+  "alkaline-earth":{label:"Alkaline Earth",   color:"#ec407a"},
+  "transition":    {label:"Transition Metals",color:"#ff7043"},
+  "post-transition":{label:"Post-Transition", color:"#78909c"},
+  "metalloid":     {label:"Metalloids",       color:"#ab47bc"},
+  "nonmetal":      {label:"Non-Metals",       color:"#26c6da"},
+  "halogen":       {label:"Halogens",         color:"#66bb6a"},
+  "noble-gas":     {label:"Noble Gases",      color:"#ffa726"},
+  "lanthanide":    {label:"Lanthanides",      color:"#26a69a"},
+  "actinide":      {label:"Actinides",        color:"#29b6f6"},
+};
+
+const ELS=[
+  {n:1,sym:"H",name:"Hydrogen",mass:1.008,cat:"nonmetal",period:1,group:1,config:"1s¹",valency:"1",eneg:2.20,shells:[1],uses:"Water, fuel cells, rocket fuel",disc:"1766, Henry Cavendish"},
+  {n:2,sym:"He",name:"Helium",mass:4.003,cat:"noble-gas",period:1,group:18,config:"1s²",valency:"0",eneg:null,shells:[2],uses:"Balloons, MRI machines, cryogenics",disc:"1868, Janssen & Lockyer"},
+  {n:3,sym:"Li",name:"Lithium",mass:6.941,cat:"alkali-metal",period:2,group:1,config:"[He] 2s¹",valency:"1",eneg:0.98,shells:[2,1],uses:"Batteries, mood stabilizers",disc:"1817, Johan Arfwedson"},
+  {n:4,sym:"Be",name:"Beryllium",mass:9.012,cat:"alkaline-earth",period:2,group:2,config:"[He] 2s²",valency:"2",eneg:1.57,shells:[2,2],uses:"Aerospace, X-ray windows",disc:"1798, Louis Vauquelin"},
+  {n:5,sym:"B",name:"Boron",mass:10.81,cat:"metalloid",period:2,group:13,config:"[He] 2s² 2p¹",valency:"3",eneg:2.04,shells:[2,3],uses:"Borosilicate glass, semiconductors",disc:"1808, Gay-Lussac"},
+  {n:6,sym:"C",name:"Carbon",mass:12.011,cat:"nonmetal",period:2,group:14,config:"[He] 2s² 2p²",valency:"4",eneg:2.55,shells:[2,4],uses:"Steel, diamonds, plastics, life itself",disc:"Ancient times"},
+  {n:7,sym:"N",name:"Nitrogen",mass:14.007,cat:"nonmetal",period:2,group:15,config:"[He] 2s² 2p³",valency:"3",eneg:3.04,shells:[2,5],uses:"Fertilizers, explosives, food preservation",disc:"1772, Daniel Rutherford"},
+  {n:8,sym:"O",name:"Oxygen",mass:15.999,cat:"nonmetal",period:2,group:16,config:"[He] 2s² 2p⁴",valency:"2",eneg:3.44,shells:[2,6],uses:"Respiration, combustion, steel",disc:"1774, Carl Scheele"},
+  {n:9,sym:"F",name:"Fluorine",mass:18.998,cat:"halogen",period:2,group:17,config:"[He] 2s² 2p⁵",valency:"1",eneg:3.98,shells:[2,7],uses:"Toothpaste, Teflon, refrigerants",disc:"1886, Henri Moissan"},
+  {n:10,sym:"Ne",name:"Neon",mass:20.18,cat:"noble-gas",period:2,group:18,config:"[He] 2s² 2p⁶",valency:"0",eneg:null,shells:[2,8],uses:"Neon signs, lasers, cryogenics",disc:"1898, Ramsay & Travers"},
+  {n:11,sym:"Na",name:"Sodium",mass:22.99,cat:"alkali-metal",period:3,group:1,config:"[Ne] 3s¹",valency:"1",eneg:0.93,shells:[2,8,1],uses:"Table salt, soap, streetlights",disc:"1807, Humphry Davy"},
+  {n:12,sym:"Mg",name:"Magnesium",mass:24.305,cat:"alkaline-earth",period:3,group:2,config:"[Ne] 3s²",valency:"2",eneg:1.31,shells:[2,8,2],uses:"Alloys, fireworks, medicine",disc:"1755, Joseph Black"},
+  {n:13,sym:"Al",name:"Aluminum",mass:26.982,cat:"post-transition",period:3,group:13,config:"[Ne] 3s² 3p¹",valency:"3",eneg:1.61,shells:[2,8,3],uses:"Aircraft, cans, cooking foil",disc:"1825, Hans Ørsted"},
+  {n:14,sym:"Si",name:"Silicon",mass:28.086,cat:"metalloid",period:3,group:14,config:"[Ne] 3s² 3p²",valency:"4",eneg:1.90,shells:[2,8,4],uses:"Semiconductors, solar cells, glass",disc:"1824, Berzelius"},
+  {n:15,sym:"P",name:"Phosphorus",mass:30.974,cat:"nonmetal",period:3,group:15,config:"[Ne] 3s² 3p³",valency:"3,5",eneg:2.19,shells:[2,8,5],uses:"Fertilizers, matches, DNA",disc:"1669, Hennig Brand"},
+  {n:16,sym:"S",name:"Sulfur",mass:32.06,cat:"nonmetal",period:3,group:16,config:"[Ne] 3s² 3p⁴",valency:"2",eneg:2.58,shells:[2,8,6],uses:"Sulfuric acid, rubber, medicine",disc:"Ancient times"},
+  {n:17,sym:"Cl",name:"Chlorine",mass:35.453,cat:"halogen",period:3,group:17,config:"[Ne] 3s² 3p⁵",valency:"1",eneg:3.16,shells:[2,8,7],uses:"Water purification, PVC, bleach",disc:"1774, Carl Scheele"},
+  {n:18,sym:"Ar",name:"Argon",mass:39.948,cat:"noble-gas",period:3,group:18,config:"[Ne] 3s² 3p⁶",valency:"0",eneg:null,shells:[2,8,8],uses:"Welding, light bulbs, cryogenics",disc:"1894, Ramsay & Rayleigh"},
+  {n:19,sym:"K",name:"Potassium",mass:39.098,cat:"alkali-metal",period:4,group:1,config:"[Ar] 4s¹",valency:"1",eneg:0.82,shells:[2,8,8,1],uses:"Fertilizers, nerve function",disc:"1807, Humphry Davy"},
+  {n:20,sym:"Ca",name:"Calcium",mass:40.078,cat:"alkaline-earth",period:4,group:2,config:"[Ar] 4s²",valency:"2",eneg:1.00,shells:[2,8,8,2],uses:"Bones, cement, cheese",disc:"1808, Humphry Davy"},
+  {n:21,sym:"Sc",name:"Scandium",mass:44.956,cat:"transition",period:4,group:3,config:"[Ar] 3d¹ 4s²",valency:"3",eneg:1.36,shells:[2,8,9,2],uses:"Aerospace alloys, sports equipment",disc:"1879, Lars Nilson"},
+  {n:22,sym:"Ti",name:"Titanium",mass:47.867,cat:"transition",period:4,group:4,config:"[Ar] 3d² 4s²",valency:"4",eneg:1.54,shells:[2,8,10,2],uses:"Aircraft, surgical implants",disc:"1791, William Gregor"},
+  {n:23,sym:"V",name:"Vanadium",mass:50.942,cat:"transition",period:4,group:5,config:"[Ar] 3d³ 4s²",valency:"5",eneg:1.63,shells:[2,8,11,2],uses:"Steel alloys, catalysts",disc:"1801, Andrés del Río"},
+  {n:24,sym:"Cr",name:"Chromium",mass:51.996,cat:"transition",period:4,group:6,config:"[Ar] 3d⁵ 4s¹",valency:"3",eneg:1.66,shells:[2,8,13,1],uses:"Stainless steel, chrome plating",disc:"1798, Louis Vauquelin"},
+  {n:25,sym:"Mn",name:"Manganese",mass:54.938,cat:"transition",period:4,group:7,config:"[Ar] 3d⁵ 4s²",valency:"2",eneg:1.55,shells:[2,8,13,2],uses:"Steel production, batteries",disc:"1774, Johan Gahn"},
+  {n:26,sym:"Fe",name:"Iron",mass:55.845,cat:"transition",period:4,group:8,config:"[Ar] 3d⁶ 4s²",valency:"2,3",eneg:1.83,shells:[2,8,14,2],uses:"Steel, magnets, hemoglobin",disc:"Ancient times"},
+  {n:27,sym:"Co",name:"Cobalt",mass:58.933,cat:"transition",period:4,group:9,config:"[Ar] 3d⁷ 4s²",valency:"2,3",eneg:1.88,shells:[2,8,15,2],uses:"Batteries, pigments, cutting tools",disc:"1735, Georg Brandt"},
+  {n:28,sym:"Ni",name:"Nickel",mass:58.693,cat:"transition",period:4,group:10,config:"[Ar] 3d⁸ 4s²",valency:"2",eneg:1.91,shells:[2,8,16,2],uses:"Stainless steel, coins, batteries",disc:"1751, Axel Cronstedt"},
+  {n:29,sym:"Cu",name:"Copper",mass:63.546,cat:"transition",period:4,group:11,config:"[Ar] 3d¹⁰ 4s¹",valency:"1,2",eneg:1.90,shells:[2,8,18,1],uses:"Wiring, plumbing, coins",disc:"Ancient times"},
+  {n:30,sym:"Zn",name:"Zinc",mass:65.38,cat:"transition",period:4,group:12,config:"[Ar] 3d¹⁰ 4s²",valency:"2",eneg:1.65,shells:[2,8,18,2],uses:"Galvanizing steel, batteries",disc:"Ancient times"},
+  {n:31,sym:"Ga",name:"Gallium",mass:69.723,cat:"post-transition",period:4,group:13,config:"[Ar] 3d¹⁰ 4s² 4p¹",valency:"3",eneg:1.81,shells:[2,8,18,3],uses:"Semiconductors, LEDs",disc:"1875, Paul Lecoq"},
+  {n:32,sym:"Ge",name:"Germanium",mass:72.63,cat:"metalloid",period:4,group:14,config:"[Ar] 3d¹⁰ 4s² 4p²",valency:"4",eneg:2.01,shells:[2,8,18,4],uses:"Semiconductors, fiber optics",disc:"1886, Clemens Winkler"},
+  {n:33,sym:"As",name:"Arsenic",mass:74.922,cat:"metalloid",period:4,group:15,config:"[Ar] 3d¹⁰ 4s² 4p³",valency:"3,5",eneg:2.18,shells:[2,8,18,5],uses:"Semiconductors, pesticides",disc:"~1250, Albertus Magnus"},
+  {n:34,sym:"Se",name:"Selenium",mass:78.971,cat:"nonmetal",period:4,group:16,config:"[Ar] 3d¹⁰ 4s² 4p⁴",valency:"2",eneg:2.55,shells:[2,8,18,6],uses:"Solar cells, photocopiers",disc:"1817, Berzelius"},
+  {n:35,sym:"Br",name:"Bromine",mass:79.904,cat:"halogen",period:4,group:17,config:"[Ar] 3d¹⁰ 4s² 4p⁵",valency:"1",eneg:2.96,shells:[2,8,18,7],uses:"Flame retardants, photography",disc:"1826, Antoine Balard"},
+  {n:36,sym:"Kr",name:"Krypton",mass:83.798,cat:"noble-gas",period:4,group:18,config:"[Ar] 3d¹⁰ 4s² 4p⁶",valency:"0",eneg:null,shells:[2,8,18,8],uses:"Lighting, photography",disc:"1898, Ramsay & Travers"},
+  {n:37,sym:"Rb",name:"Rubidium",mass:85.468,cat:"alkali-metal",period:5,group:1,config:"[Kr] 5s¹",valency:"1",eneg:0.82,shells:[2,8,18,8,1],uses:"Atomic clocks, fireworks",disc:"1861, Bunsen & Kirchhoff"},
+  {n:38,sym:"Sr",name:"Strontium",mass:87.62,cat:"alkaline-earth",period:5,group:2,config:"[Kr] 5s²",valency:"2",eneg:0.95,shells:[2,8,18,8,2],uses:"Red fireworks, CRT screens",disc:"1790, Adair Crawford"},
+  {n:47,sym:"Ag",name:"Silver",mass:107.868,cat:"transition",period:5,group:11,config:"[Kr] 4d¹⁰ 5s¹",valency:"1",eneg:1.93,shells:[2,8,18,18,1],uses:"Jewelry, electronics, antibacterials",disc:"Ancient times"},
+  {n:50,sym:"Sn",name:"Tin",mass:118.710,cat:"post-transition",period:5,group:14,config:"[Kr] 4d¹⁰ 5s² 5p²",valency:"4",eneg:1.96,shells:[2,8,18,18,4],uses:"Solder, tin cans, bronze",disc:"Ancient times"},
+  {n:53,sym:"I",name:"Iodine",mass:126.904,cat:"halogen",period:5,group:17,config:"[Kr] 4d¹⁰ 5s² 5p⁵",valency:"1",eneg:2.66,shells:[2,8,18,18,7],uses:"Antiseptics, thyroid medicine",disc:"1811, Bernard Courtois"},
+  {n:54,sym:"Xe",name:"Xenon",mass:131.293,cat:"noble-gas",period:5,group:18,config:"[Kr] 4d¹⁰ 5s² 5p⁶",valency:"0",eneg:null,shells:[2,8,18,18,8],uses:"Flash lamps, ion thrusters",disc:"1898, Ramsay & Travers"},
+  {n:56,sym:"Ba",name:"Barium",mass:137.327,cat:"alkaline-earth",period:6,group:2,config:"[Xe] 6s²",valency:"2",eneg:0.89,shells:[2,8,18,18,8,2],uses:"X-ray contrast, fireworks",disc:"1808, Humphry Davy"},
+  {n:79,sym:"Au",name:"Gold",mass:196.967,cat:"transition",period:6,group:11,config:"[Xe] 4f¹⁴ 5d¹⁰ 6s¹",valency:"1,3",eneg:2.54,shells:[2,8,18,32,18,1],uses:"Jewelry, electronics, medicine",disc:"Ancient times"},
+  {n:80,sym:"Hg",name:"Mercury",mass:200.592,cat:"transition",period:6,group:12,config:"[Xe] 4f¹⁴ 5d¹⁰ 6s²",valency:"1,2",eneg:2.00,shells:[2,8,18,32,18,2],uses:"Thermometers, fluorescent lamps",disc:"Ancient times"},
+  {n:82,sym:"Pb",name:"Lead",mass:207.2,cat:"post-transition",period:6,group:14,config:"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²",valency:"2,4",eneg:2.33,shells:[2,8,18,32,18,4],uses:"Batteries, radiation shielding",disc:"Ancient times"},
+  {n:86,sym:"Rn",name:"Radon",mass:222,cat:"noble-gas",period:6,group:18,config:"[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶",valency:"0",eneg:null,shells:[2,8,18,32,18,8],uses:"Cancer therapy, earthquake prediction",disc:"1900, Friedrich Dorn"},
+  {n:88,sym:"Ra",name:"Radium",mass:226,cat:"alkaline-earth",period:7,group:2,config:"[Rn] 7s²",valency:"2",eneg:0.90,shells:[2,8,18,32,18,8,2],uses:"Cancer therapy, luminous paint",disc:"1898, Marie & Pierre Curie"},
+  {n:92,sym:"U",name:"Uranium",mass:238.029,cat:"actinide",period:7,group:3,config:"[Rn] 5f³ 6d¹ 7s²",valency:"6",eneg:1.38,shells:[2,8,18,32,21,9,2],uses:"Nuclear fuel, nuclear reactors",disc:"1789, Martin Klaproth"},
+];
+
+const GRID=[
+  [1,1,1],[1,18,2],
+  [2,1,3],[2,2,4],[2,13,5],[2,14,6],[2,15,7],[2,16,8],[2,17,9],[2,18,10],
+  [3,1,11],[3,2,12],[3,13,13],[3,14,14],[3,15,15],[3,16,16],[3,17,17],[3,18,18],
+  [4,1,19],[4,2,20],[4,3,21],[4,4,22],[4,5,23],[4,6,24],[4,7,25],[4,8,26],[4,9,27],[4,10,28],[4,11,29],[4,12,30],[4,13,31],[4,14,32],[4,15,33],[4,16,34],[4,17,35],[4,18,36],
+  [5,1,37],[5,2,38],[5,11,47],[5,14,50],[5,17,53],[5,18,54],
+  [6,2,56],[6,11,79],[6,12,80],[6,14,82],[6,18,86],
+  [7,2,88],[7,3,92],
+];
+
+const TRENDS={
+  atomicRadius:{label:"Atomic Radius",unit:"pm",vals:{H:53,He:31,Li:167,Be:112,B:87,C:77,N:75,O:73,F:72,Ne:71,Na:186,Mg:160,Al:143,Si:118,P:110,S:103,Cl:99,Ar:98,K:227,Ca:197},desc:"↑ Increases down groups · ← Decreases across periods"},
+  ionization:{label:"Ionization Energy",unit:"kJ/mol",vals:{H:1312,He:2372,Li:520,Be:900,B:801,C:1086,N:1402,O:1314,F:1681,Ne:2081,Na:496,Mg:738,Al:578,Si:786,P:1012,S:1000,Cl:1251,Ar:1521,K:419,Ca:590},desc:"↓ Decreases down groups · → Increases across periods"},
+  electronegativity:{label:"Electronegativity",unit:"Pauling",vals:{H:2.20,Li:0.98,Be:1.57,B:2.04,C:2.55,N:3.04,O:3.44,F:3.98,Na:0.93,Mg:1.31,Al:1.61,Si:1.90,P:2.19,S:2.58,Cl:3.16,K:0.82,Ca:1.00},desc:"↓ Decreases down groups · → Increases across periods"},
+};
+
+const elByN=Object.fromEntries(ELS.map(e=>[e.n,e]));
+let currentFilter='all', currentSearch='', activeTrend=null, isDark=true;
+
+// Build legend
+const legend=document.getElementById('legend');
+Object.entries(CATS).forEach(([k,v])=>{
+  const d=document.createElement('div');d.className='legend-item';
+  d.innerHTML=`<span class="legend-dot" style="background:${v.color}"></span>${v.label}`;
+  legend.appendChild(d);
+});
+
+// Build filters
+const FILTER_DEFS=[
+  {id:'all',label:'All'},
+  {id:'alkali-metal',label:'Alkali Metals'},
+  {id:'alkaline-earth',label:'Alkaline Earth'},
+  {id:'transition',label:'Transition'},
+  {id:'nonmetal',label:'Non-Metals'},
+  {id:'noble-gas',label:'Noble Gases'},
+  {id:'halogen',label:'Halogens'},
+  {id:'metalloid',label:'Metalloids'},
+];
+const filtersEl=document.getElementById('filters');
+FILTER_DEFS.forEach(f=>{
+  const b=document.createElement('button');
+  b.className='filter-btn'+(f.id==='all'?' on':'');
+  b.textContent=f.label;
+  const cat=CATS[f.id];
+  if(cat){b.style.color=cat.color;b.style.borderColor=cat.color+'44';}
+  else{b.style.color='#00e5ff';b.style.borderColor='rgba(0,229,255,0.3)';}
+  b.onclick=()=>setFilter(f.id);
+  b.dataset.id=f.id;
+  filtersEl.appendChild(b);
+});
+
+function setFilter(id){
+  currentFilter=id;
+  document.querySelectorAll('.filter-btn').forEach(b=>{
+    const active=b.dataset.id===id;
+    b.classList.toggle('on',active);
+    const cat=CATS[b.dataset.id];
+    const col=cat?cat.color:'#00e5ff';
+    b.style.background=active?col+'22':'rgba(255,255,255,0.03)';
+    b.style.boxShadow=active?`0 0 10px ${col}44`:'none';
+  });
+  renderGrid();
+}
+
+function doSearch(v){
+  currentSearch=v.toLowerCase();
+  document.getElementById('searchClear').style.display=v?'block':'none';
+  renderGrid();
+}
+function clearSearch(){
+  document.getElementById('searchInput').value='';
+  doSearch('');
+}
+
+function isHighlighted(el){
+  const ms=!currentSearch||el.sym.toLowerCase().includes(currentSearch)||el.name.toLowerCase().includes(currentSearch)||String(el.n).includes(currentSearch);
+  const mf=currentFilter==='all'||el.cat===currentFilter;
+  return ms&&mf;
+}
+
+function renderGrid(){
+  const grid=document.getElementById('ptGrid');
+  grid.innerHTML='';
+  const hasFilter=currentSearch||currentFilter!=='all';
+  const cells=Array.from({length:7},()=>Array(18).fill(null));
+  GRID.forEach(([p,g,n])=>{if(elByN[n])cells[p-1][g-1]=elByN[n];});
+  cells.forEach(row=>{
+    row.forEach(el=>{
+      const div=document.createElement('div');
+      if(!el){div.className='empty';grid.appendChild(div);return;}
+      const cat=CATS[el.cat]||{color:'#888'};
+      const hi=isHighlighted(el);
+      const dim=hasFilter&&!hi;
+      div.className='el-cell'+(dim?' dimmed':hi?' highlighted':'');
+      div.style.setProperty('color',cat.color);
+      if(hi)div.style.borderColor=cat.color+'88';
+      if(hi)div.style.background=cat.color+'18';
+      div.innerHTML=`<span class="el-num">${el.n}</span><span class="el-sym" style="color:${cat.color}">${el.sym}</span><span class="el-name">${el.name}</span><span class="el-mass">${el.mass.toFixed(1)}</span>`;
+      div.onclick=()=>openPopup(el);
+      grid.appendChild(div);
+    });
+  });
+}
+renderGrid();
+
+// Trend tabs
+const trendTabs=document.getElementById('trendTabs');
+const trendContent=document.getElementById('trendContent');
+Object.entries(TRENDS).forEach(([k,t])=>{
+  const b=document.createElement('button');
+  b.className='filter-btn';b.textContent=t.label;
+  b.style.color='#00e5ff';b.style.borderColor='rgba(0,229,255,0.3)';
+  b.dataset.key=k;
+  b.onclick=()=>{
+    if(activeTrend===k){activeTrend=null;trendContent.classList.remove('open');trendContent.innerHTML='';b.classList.remove('on');b.style.background='rgba(255,255,255,0.03)';}
+    else{
+      activeTrend=k;
+      document.querySelectorAll('#trendTabs .filter-btn').forEach(x=>{x.classList.remove('on');x.style.background='rgba(255,255,255,0.03)';});
+      b.classList.add('on');b.style.background='rgba(0,229,255,0.12)';
+      renderTrend(k);trendContent.classList.add('open');
+    }
+  };
+  trendTabs.appendChild(b);
+});
+
+function renderTrend(k){
+  const t=TRENDS[k];
+  const entries=Object.entries(t.vals);
+  const max=Math.max(...entries.map(([,v])=>v));
+  trendContent.innerHTML=`<p style="font-size:11px;opacity:0.45;margin-bottom:10px">${t.desc} · Unit: ${t.unit}</p>`;
+  entries.forEach(([sym,val])=>{
+    const pct=Math.round(val/max*100);
+    const row=document.createElement('div');row.className='trend-bar-row';
+    row.innerHTML=`<span class="trend-label" style="color:#00e5ff">${sym}</span><div class="trend-track"><div class="trend-fill" style="width:0%;background:#00e5ff;width:${pct}%"></div></div><span class="trend-val">${val}</span>`;
+    trendContent.appendChild(row);
+  });
+}
+
+// Popup
+function openPopup(el){
+  const cat=CATS[el.cat]||{color:'#888',label:el.cat};
+  const popup=document.getElementById('popup');
+  popup.style.borderColor=cat.color;
+  popup.style.boxShadow=`0 0 60px ${cat.color}44, 0 25px 50px rgba(0,0,0,0.6)`;
+
+  // Header
+  document.getElementById('popupHeader').innerHTML=`
+    <button class="popup-close" onclick="closePopup()">✕</button>
+    <div class="popup-top">
+      <div class="popup-symbol-box" style="border-color:${cat.color}66;background:${cat.color}18">
+        <div class="popup-atomic">#${el.n}</div>
+        <div class="popup-sym" style="color:${cat.color}">${el.sym}</div>
+        <div class="popup-mass">${el.mass} u</div>
+      </div>
+      <div>
+        <div class="popup-name">${el.name}</div>
+        <span class="popup-badge" style="background:${cat.color}22;color:${cat.color}">${cat.label}</span>
+        <div class="popup-meta">Period ${el.period} · Group ${el.group}</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;height:1px;background:${cat.color}22"></div>
+  `;
+
+  // Build electron shell SVG
+  const shellSVG=buildShellSVG(el.shells,cat.color);
+
+  const props=[
+    {label:'Atomic Number',val:el.n},
+    {label:'Atomic Mass',val:`${el.mass} u`},
+    {label:'Valency',val:el.valency},
+    {label:'Electronegativity',val:el.eneg?`${el.eneg} Pauling`:'–'},
+    {label:'Period / Group',val:`${el.period} / ${el.group}`},
+  ];
+
+  document.getElementById('popupBody').innerHTML=`
+    <div>
+      <div class="section-label">Electron Configuration</div>
+      ${shellSVG}
+      <div class="shell-config" style="color:${cat.color}">${el.config}</div>
+      <div class="shell-counts">${el.shells.map((c,i)=>`<span class="shell-badge" style="background:${cat.color}20;color:${cat.color}">Shell ${i+1}: ${c}e⁻</span>`).join('')}</div>
+    </div>
+    <div>
+      <div class="section-label">Properties</div>
+      ${props.map(p=>`<div class="prop-row"><span style="opacity:0.55">${p.label}</span><span class="prop-val" style="color:${cat.color}">${p.val}</span></div>`).join('')}
+      <div class="section-label" style="margin-top:12px">Discovery</div>
+      <div class="info-box"><div class="info-label">Discovered</div>${el.disc}</div>
+      <div class="section-label">Real-Life Uses</div>
+      <div class="info-box"><div class="info-label">Applications</div>${el.uses}</div>
+      ${buildTrendBars(el,cat.color)}
+    </div>
+  `;
+
+  document.getElementById('popupBg').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function buildTrendBars(el,color){
+  const bars=Object.entries(TRENDS).map(([k,t])=>{
+    const val=t.vals[el.sym];if(!val)return'';
+    const max=Math.max(...Object.values(t.vals));
+    const pct=Math.round(val/max*100);
+    return`<div class="trend-bar-row"><span class="trend-label" style="color:${color}">${el.sym}</span><div class="trend-track"><div class="trend-fill" style="width:${pct}%;background:${color}"></div></div><span class="trend-val">${val} ${t.unit}</span></div>`;
+  }).filter(Boolean);
+  if(!bars.length)return'';
+  return`<div class="section-label" style="margin-top:12px">Periodic Trends</div>${bars.join('')}`;
+}
+
+function buildShellSVG(shells,color){
+  const cx=100,cy=100;
+  const radii=[20,38,57,76,93,108,121];
+  let elEls='';
+  shells.forEach((count,si)=>{
+    const r=radii[si];
+    elEls+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-opacity="0.2" stroke-width="1" stroke-dasharray="4 4"/>`;
+    for(let ei=0;ei<count;ei++){
+      const startAngle=(360/count)*ei-90;
+      const ex=cx+r*Math.cos(startAngle*Math.PI/180);
+      const ey=cy+r*Math.sin(startAngle*Math.PI/180);
+      elEls+=`<circle cx="${ex}" cy="${ey}" r="3.5" fill="${color}" opacity="0.85">
+        <animateTransform attributeName="transform" type="rotate" values="0 ${cx} ${cy};360 ${cx} ${cy}" dur="${3+si*1.5}s" repeatCount="indefinite"/>
+      </circle>`;
+    }
+  });
+  return`<svg width="200" height="200" viewBox="0 0 200 200" class="shell-svg">
+    <defs><radialGradient id="ng${shells.join('')}" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="${color}"/><stop offset="100%" stop-color="${color}" stop-opacity="0.3"/></radialGradient></defs>
+    ${elEls}
+    <circle cx="${cx}" cy="${cy}" r="10" fill="url(#ng${shells.join('')})"/>
+    <text x="${cx}" y="${cy+4}" text-anchor="middle" font-size="7" fill="#fff" font-weight="900" opacity="0.7">nucleus</text>
+  </svg>`;
+}
+
+function closePopup(){
+  document.getElementById('popupBg').classList.remove('open');
+  document.body.style.overflow='';
+}
+function handleOverlayClick(e){if(e.target.classList.contains('popup-overlay')||e.target===e.currentTarget)closePopup();}
+
+// Dark mode
+function toggleDark(){
+  isDark=!isDark;
+  document.body.classList.toggle('light-mode',!isDark);
+  document.getElementById('darkBtn').textContent=isDark?'☀️ Light':'🌙 Dark';
+  if(isDark){
+    document.querySelectorAll('.popup').forEach(p=>p.style.background='#0d1e35');
+  } else {
+    document.querySelectorAll('.popup').forEach(p=>p.style.background='rgba(240,249,255,0.97)');
+  }
+}
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closePopup();
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();document.getElementById('searchInput').focus();}
+});
+</script>
+</body>
+</html>
