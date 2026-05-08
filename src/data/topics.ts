@@ -60,5 +60,15 @@ export const topics: Topic[] = [
     nebImportance: 'High',
     learningTime: '65 mins',
     formulas: ['ΔG = ΔH - TΔS', 'ΔU = Q - W'],
+  },
+  {
+    id: 'molecular-shape',
+    title: 'Molecular Shape Visualizer',
+    category: 'Physical',
+    description: 'Interactive 3D visualization of molecular geometries using VSEPR theory. Explore bond angles, lone pairs, hybridization, and molecular polarity.',
+    difficulty: 'Medium',
+    nebImportance: 'High',
+    learningTime: '40 mins',
+    formulas: ['VSEPR', 'sp³', 'sp²', 'sp'],
   }
 ];

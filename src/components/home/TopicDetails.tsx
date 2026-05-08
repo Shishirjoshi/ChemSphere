@@ -20,9 +20,10 @@ import { cn } from '../../lib/utils';
 interface TopicDetailsProps {
   topic: Topic;
   onBack: () => void;
+  onNavigate?: (page: string, topic?: Topic) => void;
 }
 
-export const TopicDetails: React.FC<TopicDetailsProps> = ({ topic, onBack }) => {
+export const TopicDetails: React.FC<TopicDetailsProps> = ({ topic, onBack, onNavigate }) => {
   // Demo content for each topic - In a real app this might come from a DB or files
   const getContent = (id: string) => {
     switch (id) {
@@ -63,6 +64,47 @@ If a system at equilibrium is subjected to a change in concentration, pressure, 
 - **Concentration:** Adding reactant shifts equilibrium to the product side.
 - **Pressure:** Increasing pressure shifts equilibrium towards the side with fewer moles of gas.
 - **Temperature:** Increasing temperature favors endothermic reactions.
+        `;
+      case 'molecular-shape':
+        return `
+# Molecular Shape Visualizer: VSEPR Theory & Hybridization
+
+Understanding molecular geometry is crucial for predicting chemical reactivity, polarity, and properties of compounds.
+
+## VSEPR Theory (Valence Shell Electron Pair Repulsion Theory)
+
+The VSEPR model states that electron pairs (both bonding and non-bonding) around a central atom will arrange themselves to minimize repulsion.
+
+### Electron Arrangement Strategies:
+1. **Electron pairs repel each other**
+2. **Lone pairs take up more space than bonding pairs**
+3. **Electron geometry ≠ Molecular geometry** (lone pairs are not counted in molecular shape)
+
+## Hybridization
+
+Hybridization explains how atomic orbitals mix to form new hybrid orbitals suitable for bonding.
+
+### Common Hybridizations:
+- **sp**: Linear geometry, 2 electron groups
+- **sp²**: Trigonal planar, 3 electron groups
+- **sp³**: Tetrahedral, 4 electron groups
+- **sp³d**: Trigonal bipyramidal, 5 electron groups
+- **sp³d²**: Octahedral, 6 electron groups
+
+## Molecular Polarity
+
+The overall polarity of a molecule depends on:
+1. **Electronegativity differences** between atoms
+2. **Molecular geometry** (dipoles must cancel for nonpolar molecules)
+
+A molecule is **polar** if the dipole moments do not cancel; **nonpolar** if they do.
+
+## Examples from the Visualizer
+
+- **Water (H₂O)**: Bent shape due to 2 lone pairs on oxygen. Polar molecule.
+- **Methane (CH₄)**: Perfect tetrahedron. Nonpolar despite C-H bonds.
+- **Ammonia (NH₃)**: Trigonal pyramidal. Polar molecule with 1 lone pair.
+- **Carbon Dioxide (CO₂)**: Linear shape. Nonpolar despite polar C=O bonds.
         `;
       default:
         return "Detailed content for this topic is coming soon! Our educators are preparing high-quality visual notes for you.";
@@ -133,7 +175,15 @@ If a system at equilibrium is subjected to a change in concentration, pressure, 
                 </div>
                 <h3 className="text-2xl font-black mb-4 tracking-tight">Interactive Visualizer</h3>
                 <p className="text-white/80 text-sm mb-8 leading-relaxed">Don't just read about molecules. See their atoms, rotate their bonds, and understand the geometry in our real-time 3D lab.</p>
-                <button className="w-full py-4 bg-white text-blue-700 font-black rounded-2xl flex items-center justify-center gap-2 hover:bg-cyan-100 transition-colors">
+                <button 
+                  onClick={() => {
+                    if (topic.id === 'molecular-shape' && onNavigate) {
+                      onNavigate('molecular-shape', topic);
+                    }
+                  }}
+                  className="w-full py-4 bg-white text-blue-700 font-black rounded-2xl flex items-center justify-center gap-2 hover:bg-cyan-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={topic.id !== 'molecular-shape'}
+                >
                    Launch Lab <ChevronRight size={20} />
                 </button>
              </div>

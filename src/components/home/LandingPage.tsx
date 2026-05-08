@@ -75,6 +75,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 </div>
               </button>
               <button 
+                onClick={() => {
+                  const molTopic = topics.find(t => t.id === 'molecular-shape');
+                  if (molTopic) onNavigate('topic', molTopic);
+                }}
+                className="group relative px-8 py-4 bg-purple-500 text-white font-bold rounded-2xl overflow-hidden active:scale-95 transition-transform hover:bg-purple-600"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                <div className="flex items-center gap-2">
+                  Molecular Shape Visualizer <Beaker size={18} />
+                </div>
+              </button>
+              <button 
                 className="px-8 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-2xl hover:bg-white/10 active:scale-95 transition-all"
                 onClick={() => {
                    const topicsSection = document.getElementById('topics');

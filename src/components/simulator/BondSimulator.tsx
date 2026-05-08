@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Beaker, RefreshCw, Zap, CheckCircle2, ChevronRight,
-  RotateCcw, Eye, EyeOff, GitBranch, Box,
+  RotateCcw, Eye, EyeOff, GitBranch, Box, Atom,
 } from 'lucide-react';
 import * as THREE from 'three';
 import { cn } from '../../lib/utils';
@@ -478,7 +478,7 @@ const MoleculeViewer3D: React.FC<ViewerProps> = ({
 // ─── Main Component ───────────────────────────────────────────────────────────
  
 type InfoTab = 'desc' | 'lewis' | 'facts' | 'periodic';
-type SimulationTopic = 'bonding' | 'periodic' | 'ionic-covalent' | 'lewis-generator';
+type SimulationTopic = 'bonding' | 'molecular-shape' | 'periodic' | 'ionic-covalent' | 'lewis-generator';
  
 export const BondSimulator: React.FC = () => {
   const [selectedTopic, setSelectedTopic] = useState<SimulationTopic | null>(null);
@@ -493,35 +493,42 @@ export const BondSimulator: React.FC = () => {
   const periodicSimulationUrl = '/simulations/chemsphere_nepal_periodic_table.html';
   const ionicCovalentSimulationUrl = '/simulations/ionic-covalent-simulator/dist/index.html';
   const lewisSimulationUrl = '/simulations/lewis-structure-generator/dist/index.html';
-  const isEmbeddedTopic = selectedTopic === 'periodic' || selectedTopic === 'ionic-covalent' || selectedTopic === 'lewis-generator';
+   const molecularShapeVisualizerUrl = '/simulations/molecular-shape-visualizer/dist/index.html';
+   const isEmbeddedTopic = selectedTopic === 'molecular-shape' || selectedTopic === 'periodic' || selectedTopic === 'ionic-covalent' || selectedTopic === 'lewis-generator';
 
   const topicTitle =
-    selectedTopic === 'periodic'
-      ? 'Periodic Table Simulation'
-      : selectedTopic === 'ionic-covalent'
-        ? 'Ionic & Covalent Bond Simulator'
-        : selectedTopic === 'lewis-generator'
-          ? 'Lewis Structure Generator'
-          : 'Bond Simulation Lab';
+    selectedTopic === 'molecular-shape'
+      ? 'Molecular Shape Visualizer'
+      : selectedTopic === 'periodic'
+        ? 'Periodic Table Simulation'
+        : selectedTopic === 'ionic-covalent'
+          ? 'Ionic & Covalent Bond Simulator'
+          : selectedTopic === 'lewis-generator'
+            ? 'Lewis Structure Generator'
+            : 'Bond Simulation Lab';
 
   const topicSubtitle =
-    selectedTopic === 'periodic'
-      ? 'Explore elements, periods, groups, and properties.'
-      : selectedTopic === 'ionic-covalent'
-        ? 'Compare ionic and covalent bonding behavior interactively.'
-        : selectedTopic === 'lewis-generator'
-          ? 'Build Lewis structures and electron-dot diagrams.'
-          : 'Select a molecule · drag to rotate · scroll to zoom';
+    selectedTopic === 'molecular-shape'
+      ? 'Explore VSEPR theory, molecular geometries, and hybridization in 3D.'
+      : selectedTopic === 'periodic'
+        ? 'Explore elements, periods, groups, and properties.'
+        : selectedTopic === 'ionic-covalent'
+          ? 'Compare ionic and covalent bonding behavior interactively.'
+          : selectedTopic === 'lewis-generator'
+            ? 'Build Lewis structures and electron-dot diagrams.'
+            : 'Select a molecule · drag to rotate · scroll to zoom';
 
   const embeddedSimulationUrl =
-    selectedTopic === 'ionic-covalent' ? ionicCovalentSimulationUrl : (selectedTopic === 'lewis-generator' ? lewisSimulationUrl : periodicSimulationUrl);
+     selectedTopic === 'molecular-shape' ? molecularShapeVisualizerUrl : (selectedTopic === 'ionic-covalent' ? ionicCovalentSimulationUrl : (selectedTopic === 'lewis-generator' ? lewisSimulationUrl : periodicSimulationUrl));
 
   const embeddedTopicLabel =
-    selectedTopic === 'ionic-covalent'
-      ? 'Ionic & Covalent bond simulation loaded from your HTML file.'
-      : selectedTopic === 'lewis-generator'
-        ? 'Lewis Structure Generator loaded from your HTML file.'
-        : 'Interactive periodic table loaded from your HTML simulation.';
+     selectedTopic === 'molecular-shape'
+       ? 'Interactive 3D molecular shape visualizer with VSEPR theory.'
+       : selectedTopic === 'ionic-covalent'
+         ? 'Ionic & Covalent bond simulation loaded from your HTML file.'
+         : selectedTopic === 'lewis-generator'
+           ? 'Lewis Structure Generator loaded from your HTML file.'
+           : 'Interactive periodic table loaded from your HTML simulation.';
  
   // unique elements across all molecules
   const usedSymbols = Array.from(
@@ -564,6 +571,22 @@ export const BondSimulator: React.FC = () => {
                 Explore molecular geometry, bond angles, atom arrangement, and Lewis structures in 3D.
               </p>
               <span className="inline-flex mt-5 items-center gap-2 text-cyan-300 text-sm font-bold group-hover:gap-3 transition-all">
+                Open Simulation <ChevronRight size={16} />
+              </span>
+            </button>
+
+            <button
+              onClick={() => handleTopicEnter('molecular-shape')}
+              className="group text-left p-6 rounded-3xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] hover:border-purple-500/40 transition-all"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/15 text-purple-300 flex items-center justify-center mb-4">
+                <Box size={24} />
+              </div>
+              <h3 className="text-2xl font-black text-white">Molecular Shape Visualizer</h3>
+              <p className="text-white/55 text-sm mt-2 leading-relaxed">
+                Visualize VSEPR theory, molecular shapes, lone pairs, and hybridization in interactive 3D.
+              </p>
+              <span className="inline-flex mt-5 items-center gap-2 text-purple-300 text-sm font-bold group-hover:gap-3 transition-all">
                 Open Simulation <ChevronRight size={16} />
               </span>
             </button>
@@ -725,7 +748,7 @@ export const BondSimulator: React.FC = () => {
         {/* ── Center: 3D viewer ── */}
         <div className={cn(
           'order-1 flex flex-col gap-3',
-          isEmbeddedTopic ? 'xl:col-span-12' : 'xl:col-span-6 xl:order-2'
+          isEmbeddedTopic || selectedTopic === 'molecular-shape' ? 'xl:col-span-12' : 'xl:col-span-6 xl:order-2'
         )}>
  
           {/* Viewer controls strip */}
@@ -760,6 +783,16 @@ export const BondSimulator: React.FC = () => {
                 />
                 <span className="text-xs text-cyan-400 font-mono w-8">{rotateSpeed.toFixed(1)}×</span>
               </div>
+            </div>
+          ) : selectedTopic === 'molecular-shape' ? (
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs text-white/45">Interactive 3D molecular structure visualization with VSEPR theory</span>
+              <button
+                onClick={() => setSelectedTopic(null)}
+                className="text-xs text-purple-300 hover:text-purple-200 font-bold"
+              >
+                ← Back
+              </button>
             </div>
           ) : (
             <div className="flex items-center justify-between px-1">
@@ -836,6 +869,12 @@ export const BondSimulator: React.FC = () => {
                   </AnimatePresence>
                 </div>
               </>
+            ) : selectedTopic === 'molecular-shape' ? (
+               <iframe
+                 src={embeddedSimulationUrl}
+                 title="ChemSphere Molecular Shape Visualizer"
+                 className="w-full h-full border-0"
+               />
             ) : (
               <iframe
                 src={embeddedSimulationUrl}

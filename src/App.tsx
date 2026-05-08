@@ -8,6 +8,7 @@ import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/layout/Navbar';
 import { LandingPage } from './components/home/LandingPage';
 import { BondSimulator } from './components/simulator/BondSimulator';
+import { MoleculeShapeVisualizer } from './components/simulator/MoleculeShapeVisualizer';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { QuizPage } from './components/quiz/QuizPage';
 import { TopicDetails } from './components/home/TopicDetails';
@@ -17,7 +18,7 @@ import { AIChat } from './components/common/AIChat';
 import { CustomCursor } from './components/common/CustomCursor';
 import { Topic } from './types';
 
-export type Page = 'home' | 'simulator' | 'dashboard' | 'quiz' | 'topic';
+export type Page = 'home' | 'simulator' | 'molecular-shape' | 'dashboard' | 'quiz' | 'topic';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -35,12 +36,14 @@ export default function App() {
         return <LandingPage onNavigate={navigateTo} />;
       case 'simulator':
         return <BondSimulator />;
+      case 'molecular-shape':
+        return <MoleculeShapeVisualizer />;
       case 'dashboard':
         return <Dashboard onNavigate={navigateTo} />;
       case 'quiz':
         return <QuizPage />;
       case 'topic':
-        return selectedTopic ? <TopicDetails topic={selectedTopic} onBack={() => setCurrentPage('home')} /> : <LandingPage onNavigate={navigateTo} />;
+        return selectedTopic ? <TopicDetails topic={selectedTopic} onBack={() => setCurrentPage('home')} onNavigate={navigateTo} /> : <LandingPage onNavigate={navigateTo} />;
       default:
         return <LandingPage onNavigate={navigateTo} />;
     }
