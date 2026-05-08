@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/* ── Global resets ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Glowing electron pulse ── */
+@keyframes electron-pulse {
+  0%, 100% { box-shadow: 0 0 4px #60a5fa, 0 0 8px #60a5fa40; }
+  50% { box-shadow: 0 0 8px #60a5fa, 0 0 16px #60a5fa60, 0 0 24px #60a5fa20; }
+}
+
+@keyframes lone-pair-glow {
+  0%, 100% { opacity: 0.6; filter: drop-shadow(0 0 2px #60a5fa); }
+  50% { opacity: 1; filter: drop-shadow(0 0 5px #60a5fa); }
+}
+
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(14px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(14px) rotate(-360deg); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ── Electron dot glow class ── */
+.electron-dot {
+  animation: electron-pulse 2s ease-in-out infinite;
+}
+
+/* ── Range input custom styling ── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: #374151;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  box-shadow: 0 0 8px #3b82f660;
+  transition: box-shadow 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 14px #3b82f6a0;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 8px #3b82f660;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+/* ── SVG electron animation ── */
+.lone-pair-dot {
+  animation: lone-pair-glow 2s ease-in-out infinite;
+}
+
+/* ── Card hover effect ── */
+.molecule-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.molecule-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.15);
+}
+
+/* ── Gradient text ── */
+.gradient-text {
+  background: linear-gradient(135deg, #60a5fa, #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Animated background grid ── */
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(59,130,246,0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+}

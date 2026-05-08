@@ -517,7 +517,11 @@ export const BondSimulator: React.FC = () => {
     selectedTopic === 'ionic-covalent' ? ionicCovalentSimulationUrl : (selectedTopic === 'lewis-generator' ? lewisSimulationUrl : periodicSimulationUrl);
 
   const embeddedTopicLabel =
-    selectedTopic === 'ionic-covalent' ? 'Ionic & Covalent bond simulation loaded from your HTML file.' : (selectedTopic === 'lewis-generator' ? 'Lewis Structure Generator loaded from your HTML file.' : 'Interactive periodic table loaded from your HTML simulation.');
+    selectedTopic === 'ionic-covalent'
+      ? 'Ionic & Covalent bond simulation loaded from your HTML file.'
+      : selectedTopic === 'lewis-generator'
+        ? 'Lewis Structure Generator loaded from your HTML file.'
+        : 'Interactive periodic table loaded from your HTML simulation.';
  
   // unique elements across all molecules
   const usedSymbols = Array.from(
