@@ -87,19 +87,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-
-  return (
-    <AuthProvider>
-      <div className="min-h-screen bg-[#050B18] text-white font-sans selection:bg-cyan-500/30 overflow-x-hidden">
-        <CustomCursor />
-        <ParticleBackground />
-        <Navbar onNavigate={navigateTo} currentPage={currentPage} />
-        <main className="relative z-10 pt-20">
-          {renderPage()}
-        </main>
-        <Footer onNavigate={navigateTo} />
-        <AIChat />
-      </div>
-    </AuthProvider>
-  );
-}
